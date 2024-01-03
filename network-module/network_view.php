@@ -23,6 +23,13 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         height:100px;
         text-align:center;
     }
+    
+    .connect {
+        padding-top:50px;
+        padding-bottom:20px;
+        height:100px;
+        text-align:center;
+    }
 
     .network-item {
         padding: 10px;
@@ -62,6 +69,16 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         /*border: 1px solid #aaa;*/
         background-color:#f0f0f0;
     }
+    
+    .rescan { 
+      font-size:14px;
+      color:#aaa;
+      cursor:pointer;
+    }
+    
+    .rescan:hover { 
+      color:#ccc;
+    }
 </style>
 <div>
 <h3>Network</h3>
@@ -97,15 +114,16 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     </div>
 
     <div class="network-box">
-        <button class="btn btn-info" style="float:right" @click="scan_for_networks" v-if="!show_configure_client && !show_scanning">Scan</button>
-        <div id="networks-scanning" v-if="show_scanning">Scanning for WiFi networks, this may take a few seconds..<br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite></div>
-        <div v-if="!show_configure_client && !show_scanning">
+        <button class="btn btn-info" style="float:right" @click="scan_for_networks" v-if="wifi_client_mode=='list'">Scan</button>
+        <div id="networks-scanning" v-if="wifi_client_mode=='scan'">Scanning for WiFi networks, this may take a few seconds..<br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite></div>
+        
+        <div v-if="wifi_client_mode=='list'">
 
           <h4>Available WiFi networks</h4>
           <div class="network-item" v-for="(network,SSID) in available_networks" @click="configure_client(SSID)"><img class="iconwifi" :src="'<?php echo $path; ?>Modules/network/icons/dark/'+network.icon+'.png'" :title="network.SIGNAL+' dbm'">{{ SSID }}</div>
         </div>
         
-        <div id="network-authentication" v-if="show_configure_client">
+        <div id="network-authentication" v-if="wifi_client_mode=='config'">
             <div class="auth-heading">Authentication required</div>
             <div class="auth-message">Passwords or encryption keys are required to access WiFi network:<br><b>{{ selected_SSID }}</b></div>
             Password:<br>
@@ -118,7 +136,17 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             </select>
             </div>
             
-            <button class="btn" @click="show_configure_client=false">Cancel</button> <button class="btn" @click="connect">Connect</button>
+            <button class="btn" @click="wifi_client_mode=='list'">Cancel</button> <button class="btn" @click="connect">Connect</button>
+        </div>
+        
+        <div v-if="wifi_client_mode=='connect'" class="connect">
+            Connecting to <b>{{ selected_SSID }}</b><br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite>
+        </div>
+
+        <div v-if="wifi_client_mode=='connected'" class="connect">
+            <p>Connected to <b>{{ wlan0.ssid }}</b></p>
+            <p><a :href="'http://'+wlan0.ip">{{ wlan0.ip }}</a></p>
+            <p @click="scan_for_networks" class="rescan">Connect to a different network</p>
         </div>
 
     </div>
@@ -155,6 +183,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 ip: ""
             },
             
+            wifi_client_mode: 'scan',
+            
             show_scanning: true,
             available_networks: [],
             show_configure_client: false,
@@ -172,11 +202,11 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         },
         methods: {
             scan_for_networks: function () {
-                app.show_scanning = true;
+                this.wifi_client_mode = 'scan';
                 scan();
             },
             configure_client: function (SSID) {
-                this.show_configure_client = true;
+                this.wifi_client_mode = 'config';
                 this.selected_SSID = SSID
             },
             toggle_password_visibility: function() {
@@ -187,6 +217,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 }
             },
             connect: function() {
+                this.wifi_client_mode = 'connect';
                 
                 var networks_to_save = {};
                 networks_to_save[this.selected_SSID] = {};
@@ -199,8 +230,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     dataType: 'text', 
                     async: true,
                     success: function(result) {
-                        alert("Connecting to WiFi client "+app.selected_SSID)
-                        app.show_configure_client = false;
+                    
                     }
                 });
             },
@@ -243,7 +273,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 }
             
                 app.available_networks = result;
-                app.show_scanning = false;
+                app.wifi_client_mode = 'list'
             }
         });
     }
@@ -263,6 +293,10 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     app.wlan0.service = result.wlan0.service;
                     app.wlan0.ssid = result.wlan0.SSID;
                     app.wlan0.ip = result.wlan0.IPAddress;
+                    
+                    if (app.wifi_client_mode == "connect" && app.wlan0.ip) {
+                        app.wifi_client_mode = 'connected';
+                    }
                 } else {
                     app.wlan0.ssid = "";
                     app.wlan0.ip = "---";
@@ -298,8 +332,4 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
 
     scan();
-
-
-
-
 </script>
