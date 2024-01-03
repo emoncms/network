@@ -18,15 +18,15 @@ class Network
     {
         global $settings;
 
-        if (file_exists($settings['openenergymonitor_dir'].'/emonpi/network/log_'.$winterface.'.sh')) {
-            exec("sudo ".$settings['openenergymonitor_dir'].'/emonpi/network/log_'.$winterface.'.sh',$out);
+        if (file_exists($settings["emoncms_dir"].'/modules/network/scripts/log_'.$winterface.'.sh')) {
+            exec("sudo ".$settings["emoncms_dir"].'/modules/network/scripts/log_'.$winterface.'.sh',$out);
             $result = "";
             foreach($out as $line) {
                 $result .= $line."\n";
             }
             return $result;
         }
-        return "Error: Cannot find ".$settings['openenergymonitor_dir'].'/emonpi/network/log_'.$winterface.'.sh';
+        return "Error: Cannot find ".$settings["emoncms_dir"].'/modules/network/scripts/log_'.$winterface.'.sh';
     }
 
     public function scan()
