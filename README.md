@@ -2,10 +2,18 @@
 
 Wifi configuration module for emoncms. Installed on emonPi pre-built SD card image 
 
-## Install 
+## Install
+
+Remove old WiFi module if present:
+
+    rm -rf /var/www/emoncms/Modules/wifi
+
+Install new network module:
+
 ```
-  cd /var/www/emoncms/Modules
-  git clone https://github.com/emoncms/wifi
+  cd /opt/emoncms/modules
+  git clone https://github.com/emoncms/network
+  ln -s /opt/emoncms/modules/network/network-module /var/www/emoncms/Modules/network
   ```
   
 Give web user permission to execute system wlan commans:
