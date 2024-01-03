@@ -11,15 +11,15 @@ fi
 ## Change over to systemd-networkd
 ## https://raspberrypi.stackexchange.com/questions/108592
 # deinstall classic networking
-# apt --autoremove -y purge ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog
-# apt-mark hold ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog raspberrypi-net-mods openresolv
-# rm -r /etc/network /etc/dhcp
+apt --autoremove -y purge ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog
+apt-mark hold ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog raspberrypi-net-mods openresolv
+rm -r /etc/network /etc/dhcp
 
 # setup/enable systemd-resolved and systemd-networkd
-# apt --autoremove -y purge avahi-daemon
-# apt-mark hold avahi-daemon libnss-mdns
-# apt install -y libnss-resolve
-# ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+apt --autoremove -y purge avahi-daemon
+apt-mark hold avahi-daemon libnss-mdns
+apt install -y libnss-resolve
+ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 systemctl enable systemd-networkd.service systemd-resolved.service
 
 # ------------------------------------------------------
@@ -135,5 +135,12 @@ EOF
 else 
   echo "File $filename already exists"
 fi
+
+systemctl daemon-reload
 systemctl enable wpa_supplicant@ap0.service
+systemctl enable wpa_supplicant@wlan0.service
+systemctl disable wpa_supplicant.service
+
+echo "Reboot now!"
+exit 0
 
