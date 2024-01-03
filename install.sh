@@ -147,6 +147,10 @@ systemctl enable wpa_supplicant@ap0.service
 systemctl enable wpa_supplicant@wlan0.service
 systemctl disable wpa_supplicant.service
 
+# ------------------------------------------------------
+
+ln -sf /opt/emoncms/modules/network/scripts/wifi-check /usr/local/bin/wifi-check
+
 echo "Reboot now!"
 exit 0
 
