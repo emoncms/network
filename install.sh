@@ -95,7 +95,6 @@ fi
 # Create ap0 service
 # ------------------------------------------------------
 filename=/lib/systemd/system/wpa_supplicant@ap0.service
-#if [ ! -f $filename ]; then
 cat > $filename <<-EOF
 [Unit]
 Description=WPA supplicant daemon (interface-specific version)
@@ -116,9 +115,32 @@ ExecStopPost=/sbin/iw dev ap0 del
 [Install]
 Alias=multi-user.target.wants/wpa_supplicant@%i.service
 EOF
-#else 
-#  echo "File $filename already exists"
-#fi
+
+# ------------------------------------------------------
+# Install wifi-sudoers
+# ------------------------------------------------------
+filename=/etc/sudoers.d/wifi-sudoers
+cat > $filename <<-EOF
+www-data ALL=(ALL) NOPASSWD:/sbin/wpa_cli -i wlan0 scan
+www-data ALL=(ALL) NOPASSWD:/sbin/wpa_cli -i wlan0 scan_results
+
+www-data ALL=(ALL) NOPASSWD:/bin/cat /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+www-data ALL=(ALL) NOPASSWD:/bin/cp /tmp/wifidata /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+www-data ALL=(ALL) NOPASSWD:/usr/bin/tee /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl stop wpa_supplicant@wlan0.service
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl start wpa_supplicant@wlan0.service
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl restart wpa_supplicant@wlan0.service
+
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl stop wpa_supplicant@ap0.service
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl start wpa_supplicant@ap0.service
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl restart wpa_supplicant@ap0.service
+
+www-data ALL=(ALL) NOPASSWD:/opt/emoncms/modules/network/scripts/log_ap0.sh
+www-data ALL=(ALL) NOPASSWD:/opt/emoncms/modules/network/scripts/log_wlan0.sh
+EOF
+
+# ------------------------------------------------------
 
 systemctl daemon-reload
 systemctl enable wpa_supplicant@ap0.service

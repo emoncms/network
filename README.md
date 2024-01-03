@@ -14,9 +14,10 @@ Install new network module:
     git clone https://github.com/emoncms/network
     ln -s /opt/emoncms/modules/network/network-module /var/www/emoncms/Modules/network
 
-Install sudoers file:
+Run install script
 
-    sudo cp /opt/emoncms/modules/network/wifi-sudoers /etc/sudoers.d/wifi-sudoers
+    cd /opt/emoncms/modules/network
+    sudo ./install.sh
 
 ## Licence
 
