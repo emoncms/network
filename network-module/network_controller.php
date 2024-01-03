@@ -63,7 +63,7 @@ function network_controller()
             $route->format = "text";
             return $network->log($route->subaction);
         } elseif ($route->action=="scan") {
-            if (file_exists($settings['openenergymonitor_dir']."/emonpi/emoncms_wifiscan.php")) {
+            if (file_exists($settings["emoncms_dir"]."/modules/network/scripts/wifi_scan.php")) {
                 return cmd("wifi/scan",array());
             } else {
                 return $network->scan();
@@ -92,7 +92,7 @@ function cmd($classmethod,$properties) {
     if ($redis) {
         $redis->del($classmethod); // 1. remove last result
 
-        $update_script = $settings['openenergymonitor_dir']."/emonpi/emoncms-wifiscan.sh";
+        $update_script = $settings["emoncms_dir"]."/modules/network/scripts/wifi_scan.sh";
         $update_logfile = $settings['log']['location']."/wifiscan.log";
         $redis->rpush("service-runner","$update_script>$update_logfile");
 
