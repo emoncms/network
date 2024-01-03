@@ -1,8 +1,19 @@
 #!/usr/bin/env bash
 
 # 1) Check to see if ethernet is UP and get ip address
-eth0status=$(cat /sys/class/net/eth0/carrier)
-wlan0status=$(cat /sys/class/net/wlan0/carrier)
+if [ -f /sys/class/net/eth0/carrier ]
+then
+    eth0status=$(cat /sys/class/net/eth0/carrier)
+else
+    eth0status=0
+fi
+
+if [ -f /sys/class/net/wlan0/carrier ]
+then
+    wlan0status=$(cat /sys/class/net/wlan0/carrier)
+else
+    wlan0status=0
+fi
 
 if [ -f /sys/class/net/ap0/carrier ]
 then
