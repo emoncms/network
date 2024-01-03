@@ -1,5 +1,43 @@
 #!/bin/bash
 
+
+### Check if run as root ############################
+if [[ $EUID -ne 0 ]]; then
+	echo "This script must be run as root" 
+	echo "Try \"sudo $0\""	
+	exit 1
+fi
+	
+## Change over to systemd-networkd
+## https://raspberrypi.stackexchange.com/questions/108592
+# deinstall classic networking
+# apt --autoremove -y purge ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog
+# apt-mark hold ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog raspberrypi-net-mods openresolv
+# rm -r /etc/network /etc/dhcp
+
+# setup/enable systemd-resolved and systemd-networkd
+# apt --autoremove -y purge avahi-daemon
+# apt-mark hold avahi-daemon libnss-mdns
+# apt install -y libnss-resolve
+# ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+systemctl enable systemd-networkd.service systemd-resolved.service
+
+# ------------------------------------------------------
+# eth0 is the ethernet interface
+# ------------------------------------------------------
+filename='/etc/systemd/network/04-eth0.network'
+if [ ! -f $filename ]; then
+cat > $filename <<-EOF
+  [Match]
+  Name=eth0
+  [Network]
+  DHCP=yes
+  MulticastDNS=yes
+EOF
+else
+  echo "File $filename already exists"
+fi
+
 # ------------------------------------------------------
 # wlan0 is the wifi client interface
 # ------------------------------------------------------
@@ -47,7 +85,7 @@ cat > $filename <<-EOF
       ssid="emonPi"
       mode=2
       key_mgmt=WPA-PSK
-      psk="emonpi2016"
+      psk="emonsd"
       frequency=2412
   }
 EOF
@@ -79,7 +117,7 @@ cat > $filename <<-EOF
 Description=WPA supplicant daemon (interface-specific version)
 Requires=sys-subsystem-net-devices-wlan0.device
 After=sys-subsystem-net-devices-wlan0.device
-Conflicts=wpa_supplicant@wlan0.service
+# Conflicts=wpa_supplicant@wlan0.service
 Before=network.target
 Wants=network.target
 

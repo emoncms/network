@@ -15,7 +15,7 @@ fi
 # deinstall classic networking
 apt --autoremove -y purge ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog
 apt-mark hold ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog raspberrypi-net-mods openresolv
-rm -r /etc/network /etc/dhcp
+#rm -r /etc/network /etc/dhcp
 
 # setup/enable systemd-resolved and systemd-networkd
 apt --autoremove -y purge avahi-daemon
@@ -23,6 +23,8 @@ apt-mark hold avahi-daemon libnss-mdns
 apt install -y libnss-resolve
 ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
 systemctl enable systemd-networkd.service systemd-resolved.service
+
+exit 0
 
 ## Install configuration files for systemd-networkd
 cat > /etc/systemd/network/04-${interfaceWired}.network <<-EOF
