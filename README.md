@@ -10,11 +10,9 @@ Remove old WiFi module if present:
 
 Install new network module:
 
-```
-  cd /opt/emoncms/modules
-  git clone https://github.com/emoncms/network
-  ln -s /opt/emoncms/modules/network/network-module /var/www/emoncms/Modules/network
-  ```
+    cd /opt/emoncms/modules
+    git clone https://github.com/emoncms/network
+    ln -s /opt/emoncms/modules/network/network-module /var/www/emoncms/Modules/network
   
 Give web user permission to execute system wlan commans:
 
