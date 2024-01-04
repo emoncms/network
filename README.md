@@ -19,6 +19,19 @@ Run install script
     cd /opt/emoncms/modules/network
     sudo ./install.sh
 
+For best results update emonpi and emoncms/setup modules:
+
+    cd /opt/openenergymonitor/emonpi
+    git pull origin
+    git fetch origin
+    git checkout wifi3
+
+    cd /var/www/emoncms/Modules/setup
+    git pull origin
+    git fetch origin
+    git checkout wifi3
+
+
 ## Licence
 
 GNU AFFERO GENERAL PUBLIC LICENSE, see emoncms repo:<br>
