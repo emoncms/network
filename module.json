@@ -1,6 +1,6 @@
 {
-    "name"         : "WiFi",
-    "version"      : "2.1.1",
-    "location"     : "/var/www/emoncms/Modules",
+    "name"         : "Network",
+    "version"      : "3.0.0",
+    "location"     : "/opt/emoncms/modules",
     "branches_available": ["stable","master"]
 }
