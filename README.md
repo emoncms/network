@@ -1,6 +1,6 @@
-# Emoncms Wifi Module 
+# Emoncms Network Module 
 
-Wifi configuration module for emoncms. Installed on emonPi pre-built SD card image 
+Network configuration module for emoncms.
 
 ## Install
 
@@ -23,3 +23,10 @@ Run install script
 
 GNU AFFERO GENERAL PUBLIC LICENSE, see emoncms repo:<br>
 https://github.com/emoncms/emoncms/blob/master/LICENSE.txt
+
+Credit to: 
+
+- https://github.com/0unknwn/auto-hotspot
+- https://raspberrypi.stackexchange.com/questions/100195/automatically-create-hotspot-if-no-network-is-available
+
+for a guide on how to do this with systemd-networkd
