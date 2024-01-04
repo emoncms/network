@@ -32,6 +32,8 @@ Name=eth0
 [Network]
 DHCP=yes
 MulticastDNS=yes
+[DHCPv4]
+ClientIdentifier=duid
 EOF
 
 # ------------------------------------------------------
@@ -43,6 +45,8 @@ cat > $filename <<-EOF
 Name=wlan0
 [Network]
 DHCP=yes
+[DHCPv4]
+ClientIdentifier=duid
 EOF
 
 # ------------------------------------------------------
