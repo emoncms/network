@@ -36,7 +36,7 @@ function network_controller()
     
         if ($route->action=="") {
             $route->format = "html";
-            return view("Modules/network/network_view.php",array()); 
+            return view("Modules/network/network_view.php",array("mode"=>"network")); 
         } elseif ($route->action=="ap0") {
             if (in_array($route->subaction,array("start","stop","restart","disable","enable"))) {
                 return $network->service("ap0",$route->subaction);
