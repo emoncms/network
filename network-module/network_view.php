@@ -17,32 +17,28 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 <script src="<?php echo $path; ?>Lib/vue.min.js"></script>
 <style>
 
-    #networks-scanning {
+    .client-progress {
         padding-top:50px;
         padding-bottom:20px;
         height:100px;
         text-align:center;
+        background-color:rgba(255,255,255,0.1);
+        border:1px #fff solid; 
     }
     
-    .connect {
-        padding-top:50px;
-        padding-bottom:20px;
-        height:100px;
-        text-align:center;
-    }
 
-    .network-item {
+    .wifi-client-list {
         padding: 10px;
-        border: 1px #666 solid;
+        border: 1px #fff solid;
         border-bottom: 0;
         cursor: pointer;
     }
 
-    .network-item:last-child {
-        border-bottom: 1px #666 solid;
+    .wifi-client-list:last-child {
+        border-bottom: 1px #fff solid;
     }
 
-    .network-item:hover {
+    .wifi-client-list:hover {
         background-color: rgba(255, 255, 255, 0.1);
     }
 
@@ -52,48 +48,58 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         padding-right: 10px;
     }
     
-    .auth-heading {
-        font-weight:bold;
-        font-size:18px;
-        line-height:25px;
+    .auth-showpass { margin-bottom:10px; }
+    
+    .box-border {
+      padding:10px;
+      border:1px #fff solid;
+      background-color: rgba(255, 255, 255, 0.1);
     }
     
-    .auth-message { margin-bottom:10px; }
-    .auth-showpass { margin-bottom:10px; }
-    #wifi-password { width:260px }
-    
-    
     .network-box {
-        padding:10px; 
-        margin-bottom:10px;
-        /*border: 1px solid #aaa;*/
-        background-color:#f0f0f0;
+        margin-bottom:20px;
     }
     
     .rescan { 
       font-size:14px;
-      color:#aaa;
+      color:#D1E8F1;
       cursor:pointer;
     }
     
     .rescan:hover { 
-      color:#ccc;
+      color:#fff;
     }
+    
+    .log {
+        background-color:rgba(255,255,255,0.1);
+        padding:10px;
+    }
+    
+    .ip-link {
+      font-size:22px;
+      color:#D1E8F1;
+    }
+    
+    .ip-link:hover {
+      font-size:22px;
+      color:#fff;
+    }
+    
 </style>
-<div>
+<div style="color:#fff">
 <h3>Network</h3>
 
 <div id="network-app">
-    <div class="row-fluid">
-        <div class="span4 network-box" style="height:120px">
+    <div class="row-fluid" style="margin-bottom:20px">
+        <div class="span4 box-border" style="height:120px">
             <h4>Ethernet</h4>
             <p><b>IP Address:</b> {{ eth0.ip }}</p>
         </div>
-        <div class="span4 network-box">
+        <div class="span4 box-border">
             <div class="btn-group" style="float:right">
-                <button class="btn btn-success" @click="service('ap0','start')" v-if="ap0.service=='inactive'">Start</button>
-                <button class="btn btn-danger" @click="service('ap0','stop')" v-if="ap0.service!='inactive'">Stop</button> 
-                <button class="btn btn-warning" @click="service('ap0','restart')" v-if="ap0.service!='inactive'">Restart</button>
+                <button class="btn" @click="service('ap0','enable')" v-if="ap0.service=='inactive'">Enable</button>
+                <button class="btn" @click="service('ap0','disable')" v-if="ap0.service!='inactive'">Disable</button> 
+
             </div>
             <h4>WiFi Access Point</h4>
             <p><b>SSID:</b> {{ ap0.ssid }}</p>
@@ -101,11 +107,11 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
         </div>
 
-        <div class="span4 network-box">
+        <div class="span4 box-border">
            <div class="btn-group" style="float:right">
-                <button class="btn btn-success" @click="service('wlan0','start')" v-if="wlan0.service=='inactive'">Start</button>
-                <button class="btn btn-danger" @click="service('wlan0','stop')" v-if="wlan0.service!='inactive'">Stop</button> 
-                <button class="btn btn-warning" @click="service('wlan0','restart')" v-if="wlan0.service!='inactive'">Restart</button>
+                <button class="btn" @click="service('wlan0','start')" v-if="wlan0.service=='inactive'">Start</button>
+                <button class="btn" @click="service('wlan0','stop')" v-if="wlan0.service!='inactive'">Stop</button> 
+                <button class="btn" @click="service('wlan0','restart')" v-if="wlan0.service!='inactive'">Restart</button>
             </div>
             <h4>WiFi Client</h4>
             <p><b>SSID:</b> {{ wlan0.ssid }}</p>
@@ -114,21 +120,21 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     </div>
 
     <div class="network-box">
-        <button class="btn btn-info" style="float:right" @click="scan_for_networks" v-if="wifi_client_mode=='list'">Scan</button>
-        <div id="networks-scanning" v-if="wifi_client_mode=='scan'">Scanning for WiFi networks, this may take a few seconds..<br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite></div>
+        <button class="btn" style="float:right; margin-top:-5px" @click="scan_for_networks" v-if="wifi_client_mode=='list'">Scan</button>
+        <div class="client-progress" v-if="wifi_client_mode=='scan'">Scanning for WiFi networks, this may take a few seconds..<br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite></div>
         
         <div v-if="wifi_client_mode=='list'">
 
           <h4>Available WiFi networks</h4>
-          <div class="network-item" v-for="(network,SSID) in available_networks" @click="configure_client(SSID)"><img class="iconwifi" :src="'<?php echo $path; ?>Modules/network/icons/dark/'+network.icon+'.png'" :title="network.SIGNAL+' dbm'">{{ SSID }}</div>
+          <div class="wifi-client-list" v-for="(network,SSID) in available_networks" @click="configure_client(SSID)"><img class="iconwifi" :src="'<?php echo $path; ?>Modules/network/icons/light/'+network.icon+'.png'" :title="network.SIGNAL+' dbm'">{{ SSID }}</div>
         </div>
         
-        <div id="network-authentication" v-if="wifi_client_mode=='config'">
-            <div class="auth-heading">Authentication required</div>
-            <div class="auth-message">Passwords or encryption keys are required to access WiFi network:<br><b>{{ selected_SSID }}</b></div>
-            Password:<br>
-            <input v-model="selected_password" :type="password_mode" style="height:auto">
-            <div class="auth-showpass"><input type="checkbox" style="margin-top:-3px" @click="toggle_password_visibility"> Show password</div>
+        <div class="box-border" v-if="wifi_client_mode=='config'">
+            <h4>Authentication required</h4>
+            <p>Passwords or encryption keys are required to access WiFi network: <b>{{ selected_SSID }}</b></p>
+            <p>Password:</p>
+            <input v-model="selected_password" :type="show_password?'text':'password'" style="height:auto">
+            <div class="auth-showpass"><input type="checkbox" v-model="show_password" style="margin-top:-3px"> Show password</div>
             
             <div class="auth-message">WiFi country:<br>
             <select v-model="selected_country">
@@ -136,35 +142,38 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             </select>
             </div>
             
-            <button class="btn" @click="wifi_client_mode=='list'">Cancel</button> <button class="btn" @click="connect">Connect</button>
+            <button class="btn" @click="wifi_client_mode='list'">Cancel</button> <button class="btn" @click="connect">Connect</button>
         </div>
         
-        <div v-if="wifi_client_mode=='connect'" class="connect">
+        <div v-if="wifi_client_mode=='connect'" class="client-progress">
             Connecting to <b>{{ selected_SSID }}</b><br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite>
         </div>
 
-        <div v-if="wifi_client_mode=='connected'" class="connect">
+        <div v-if="wifi_client_mode=='connected'" class="client-progress">
             <p>Connected to <b>{{ wlan0.ssid }}</b></p>
-            <p><a :href="'http://'+wlan0.ip">{{ wlan0.ip }}</a></p>
+            <p><a :href="'http://'+wlan0.ip" class="ip-link">{{ wlan0.ip }}</a></p>
             <p @click="scan_for_networks" class="rescan">Connect to a different network</p>
         </div>
 
     </div>
     
     <div class="network-box">
-        <div class="btn-group" style="float:right">
-            <button class="btn" :class="{ 'btn-info' : log_interface=='ap0' }" @click="show_log('ap0')">Access Point</button>
-            <button class="btn" :class="{ 'btn-info' : log_interface=='wlan0' }" @click="show_log('wlan0')">Client</button>
+        <div style="margin-bottom:10px">
+            <div class="btn-group" style="float:right" v-if="show_log">
+                <button class="btn" :class="{ 'btn-info' : log_interface=='ap0' }" @click="show_log('ap0')">Access Point</button>
+                <button class="btn" :class="{ 'btn-info' : log_interface=='wlan0' }" @click="show_log('wlan0')">Client</button>
+            </div>
+            <button class="btn" v-if="!show_log" @click="show_log=true">Show network log</button>
+            <button class="btn" v-if="show_log" @click="show_log=false">Hide network log</button>
         </div>
-        <h4>Network Log</h4>
-        <pre>{{ log }}</pre>
+        <pre v-if="show_log" class="log">{{ log }}</pre>
     </div>
 
 </div>
 </div>
 
 <script>
-    //$("body").css("background-color","#1d8dbc");
+    $("body").css("background-color","#1d8dbc");
 
     var app = new Vue({
         el: '#network-app',
@@ -184,11 +193,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             },
             
             wifi_client_mode: 'scan',
-            
-            show_scanning: true,
             available_networks: [],
-            show_configure_client: false,
-            password_mode: "password",
+            show_password: true,
             
             selected_SSID: "",
             selected_password: "",
@@ -197,7 +203,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             countries: <?php echo json_encode($countries); ?>,
             
             log_interface: 'wlan0',
-            log: ""
+            log: "",
+            show_log:false
 
         },
         methods: {
@@ -208,13 +215,6 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             configure_client: function (SSID) {
                 this.wifi_client_mode = 'config';
                 this.selected_SSID = SSID
-            },
-            toggle_password_visibility: function() {
-                if (this.password_mode=="password") {
-                    this.password_mode = "text";
-                } else {
-                    this.password_mode="password";
-                }
             },
             connect: function() {
                 this.wifi_client_mode = 'connect';
@@ -236,6 +236,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             },
             
             service: function(winterface, action) {
+                this.log_interface = winterface;
+                
                 $.ajax({
                     url: path + "network/"+winterface+"/"+action,
                     dataType: "json",

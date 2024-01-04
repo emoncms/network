@@ -9,6 +9,9 @@ class Network
     
     public function service($winterface, $action)
     {
+        if ($action=="enable") $action = "enable --now";
+        if ($action=="disable") $action = "disable --now";
+            
         $this->log->info("systemctl $action: wpa_supplicant@".$winterface.".service");
         system("sudo systemctl $action wpa_supplicant@".$winterface.".service",$returnval);
         return $winterface." ".$action;
