@@ -31,6 +31,11 @@ For best results update emonpi and emoncms/setup modules:
     git fetch origin
     git checkout wifi3
 
+Update wifi-check entry in sudo crontab -e:
+
+    sudo crontab -e
+    * * * * * /usr/local/bin/wifi-check >> /var/log/emoncms/wificheck.log 2>&1
+
 
 ## Licence
 
