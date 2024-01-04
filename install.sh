@@ -139,6 +139,8 @@ www-data ALL=(ALL) NOPASSWD:/bin/systemctl restart wpa_supplicant@wlan0.service
 www-data ALL=(ALL) NOPASSWD:/bin/systemctl stop wpa_supplicant@ap0.service
 www-data ALL=(ALL) NOPASSWD:/bin/systemctl start wpa_supplicant@ap0.service
 www-data ALL=(ALL) NOPASSWD:/bin/systemctl restart wpa_supplicant@ap0.service
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl enable --now wpa_supplicant@ap0.service
+www-data ALL=(ALL) NOPASSWD:/bin/systemctl disable --now wpa_supplicant@ap0.service
 
 www-data ALL=(ALL) NOPASSWD:/opt/emoncms/modules/network/scripts/log_ap0.sh
 www-data ALL=(ALL) NOPASSWD:/opt/emoncms/modules/network/scripts/log_wlan0.sh
