@@ -32,7 +32,7 @@ function network_controller()
     // ------------------------------------------------------------
     // Write level access
     // ------------------------------------------------------------
-    if ($session["write"]) {
+    if ($session["write"] || $setup_access) {
     
         if ($route->action=="") {
             $route->format = "html";

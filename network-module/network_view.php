@@ -220,8 +220,14 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 </div>
 
 <script>
-    var mode = "<?php echo $mode; ?>";
+
     $("body").css("background-color", "#1d8dbc");
+    
+    var mode = "<?php echo $mode; ?>";
+    
+    // On first run call WiFi client scan after first status request
+    // and restart wlan0 if inactive
+    var first_run = true;
 
     var app = new Vue({
         el: '#network-app',
@@ -385,21 +391,28 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 } else {
                     app.ap0.ip = "---";
                 }
+                
+                // First run
+                if (first_run) {
+                    first_run = false;
+                    if (app.wlan0.service=="inactive") {
+                        app.service("wlan0","restart");
+                        setTimeout(function() {
+                            scan();
+                        },5000);
+                    } else {
+                        scan();
+                    }
+                }
             }
         });
     }
 
-    var first_run = true;
+
 
     update_status();
     setInterval(function() {
         update_status();
-
-        if (first_run) {
-            first_run = false;
-            scan();
-        }
-
     }, 5000);
 
     function update_log() {
