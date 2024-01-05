@@ -84,6 +84,12 @@ EOF
 # ------------------------------------------------------
 # wlan0 wpa_supplicant config
 # ------------------------------------------------------
+
+# Copy over existing configuration if present
+if [ -f '/etc/wpa_supplicant/wpa_supplicant.conf' ]; then
+    cp /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+fi
+
 filename='/etc/wpa_supplicant/wpa_supplicant-wlan0.conf'
 if [ ! -f $filename ]; then
 cat > $filename <<-EOF
