@@ -4,7 +4,7 @@
 ## https://raspberrypi.stackexchange.com/questions/108592
 # deinstall classic networking
 sudo apt --autoremove -y purge ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog
-apt-mark hold ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog raspberrypi-net-mods openresolv
+sudo apt-mark hold ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog raspberrypi-net-mods openresolv
 sudo rm -r /etc/network /etc/dhcp
 
 # setup/enable systemd-resolved and systemd-networkd
