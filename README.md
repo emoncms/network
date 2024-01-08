@@ -17,7 +17,7 @@ Install new network module:
 Run install script
 
     cd /opt/emoncms/modules/network
-    sudo ./install.sh
+    ./install.sh
 
 For best results update emonpi and emoncms/setup modules:
 
