@@ -1,24 +1,32 @@
 #!/bin/bash
+
+
+### Check if run as root ############################
+if [[ $EUID -ne 0 ]]; then
+	echo "This script must be run as root" 
+	echo "Try \"sudo $0\""	
+	exit 1
+fi
 	
 ## Change over to systemd-networkd
 ## https://raspberrypi.stackexchange.com/questions/108592
 # deinstall classic networking
-sudo apt --autoremove -y purge ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog
-sudo apt-mark hold ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog raspberrypi-net-mods openresolv
-sudo rm -r /etc/network /etc/dhcp
+apt --autoremove -y purge ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog
+apt-mark hold ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog raspberrypi-net-mods openresolv
+rm -r /etc/network /etc/dhcp
 
 # setup/enable systemd-resolved and systemd-networkd
-sudo apt --autoremove -y purge avahi-daemon
-sudo apt-mark hold avahi-daemon libnss-mdns
-sudo apt install -y libnss-resolve
-sudo ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
-sudo systemctl enable systemd-networkd.service systemd-resolved.service
+apt --autoremove -y purge avahi-daemon
+apt-mark hold avahi-daemon libnss-mdns
+apt install -y libnss-resolve
+ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf
+systemctl enable systemd-networkd.service systemd-resolved.service
 
 # ------------------------------------------------------
 # eth0 is the ethernet interface
 # ------------------------------------------------------
 filename='/etc/systemd/network/04-eth0.network'
-sudo cat > $filename <<-EOF
+cat > $filename <<-EOF
 [Match]
 Name=eth0
 [Network]
@@ -32,7 +40,7 @@ EOF
 # wlan0 is the wifi client interface
 # ------------------------------------------------------
 filename='/etc/systemd/network/08-wlan0.network'
-sudo cat > $filename <<-EOF
+cat > $filename <<-EOF
 [Match]
 Name=wlan0
 [Network]
@@ -45,7 +53,7 @@ EOF
 # ap0 is the wifi access point interface
 # ------------------------------------------------------
 filename='/etc/systemd/network/12-ap0.network'
-sudo cat > $filename <<-EOF
+cat > $filename <<-EOF
 [Match]
 Name=ap0
 [Network]
@@ -59,7 +67,7 @@ EOF
 # ap0 wpa_supplicant config
 # ------------------------------------------------------
 filename='/etc/wpa_supplicant/wpa_supplicant-ap0.conf'
-sudo cat > $filename <<-EOF
+cat > $filename <<-EOF
 country=GB
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
@@ -79,12 +87,12 @@ EOF
 
 # Copy over existing configuration if present
 if [ -f '/etc/wpa_supplicant/wpa_supplicant.conf' ]; then
-    sudo cp /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
+    cp /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
 fi
 
 filename='/etc/wpa_supplicant/wpa_supplicant-wlan0.conf'
 if [ ! -f $filename ]; then
-sudo cat > $filename <<-EOF
+cat > $filename <<-EOF
 ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
 update_config=1
 country=GB
@@ -97,7 +105,7 @@ fi
 # Create ap0 service
 # ------------------------------------------------------
 filename=/lib/systemd/system/wpa_supplicant@ap0.service
-sudo cat > $filename <<-EOF
+cat > $filename <<-EOF
 [Unit]
 Description=WPA supplicant daemon (interface-specific version)
 Requires=sys-subsystem-net-devices-wlan0.device
@@ -122,7 +130,7 @@ EOF
 # Install wifi-sudoers
 # ------------------------------------------------------
 filename=/etc/sudoers.d/wifi-sudoers
-sudo cat > $filename <<-EOF
+cat > $filename <<-EOF
 www-data ALL=(ALL) NOPASSWD:/sbin/wpa_cli -i wlan0 scan
 www-data ALL=(ALL) NOPASSWD:/sbin/wpa_cli -i wlan0 scan_results
 
@@ -146,15 +154,16 @@ EOF
 
 # ------------------------------------------------------
 
-sudo systemctl daemon-reload
-sudo systemctl enable wpa_supplicant@ap0.service
-sudo systemctl enable wpa_supplicant@wlan0.service
-sudo systemctl disable wpa_supplicant.service
+systemctl daemon-reload
+systemctl enable wpa_supplicant@ap0.service
+systemctl enable wpa_supplicant@wlan0.service
+systemctl disable wpa_supplicant.service
 
 # ------------------------------------------------------
 
-sudo ln -sf /opt/emoncms/modules/network/scripts/wifi-check /usr/local/bin/wifi-check
+ln -sf /opt/emoncms/modules/network/scripts/wifi-check /usr/local/bin/wifi-check
 
 echo "Reboot now!"
 exit 0
+
 
