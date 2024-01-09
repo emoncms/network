@@ -2,6 +2,8 @@
 
 
 ### Check if run as root ############################
+# This blocks install at modules stage
+# so that this script is ran later
 if [[ $EUID -ne 0 ]]; then
 	echo "This script must be run as root" 
 	echo "Try \"sudo $0\""	
