@@ -13,6 +13,8 @@ fi
 ## Change over to systemd-networkd
 ## https://raspberrypi.stackexchange.com/questions/108592
 # deinstall classic networking
+# - dhcpcd5 is not installed on latest RPI OS 2023-12-11
+# - rsyslog is not installed on latest RPI OS 2023-12-11
 apt --autoremove -y purge ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog
 apt-mark hold ifupdown dhcpcd5 isc-dhcp-client isc-dhcp-common rsyslog raspberrypi-net-mods openresolv
 rm -r /etc/network /etc/dhcp
