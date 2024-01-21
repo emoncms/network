@@ -155,11 +155,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             </div>
 
             <div class="span4 box-border">
-                <div class="btn-group" style="float:right">
-                    <button class="btn" @click="service('wlan0','start')" v-if="wlan0.service=='inactive'">Start</button>
-                    <button class="btn" @click="service('wlan0','stop')" v-if="wlan0.service!='inactive'">Stop</button>
-                    <button class="btn" @click="service('wlan0','restart')" v-if="wlan0.service!='inactive'">Restart</button>
-                </div>
+                <div style="float:right">{{ wlan0.state }}</div>
                 <h4>WiFi Client</h4>
                 <p><b>SSID:</b> {{ wlan0.ssid }}</p>
                 <p><b>IP Address:</b> {{ wlan0.ip }}</p>
@@ -173,7 +169,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             <div v-if="wifi_client_mode=='list'">
 
                 <h4>Available WiFi networks</h4>
-                <div class="wifi-client-list" v-for="(network,SSID) in available_networks" @click="configure_client(SSID)"><img class="iconwifi" :src="'<?php echo $path; ?>Modules/network/icons/light/'+network.icon+'.png'" :title="network.SIGNAL+' dbm'">{{ SSID }}</div>
+                <div class="wifi-client-list" v-for="network in available_networks" @click="configure_client(network.SSID)"><img class="iconwifi" :src="'<?php echo $path; ?>Modules/network/icons/light/'+network.icon+'.png'" :title="network.SIGNAL+'%'">{{ network.SSID }}</div>
             </div>
 
             <div class="box-border" v-if="wifi_client_mode=='config'">
@@ -182,13 +178,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 <p>Password:</p>
                 <input v-model="selected_password" :type="show_password?'text':'password'" style="height:auto">
                 <div class="auth-showpass"><input type="checkbox" v-model="show_password" style="margin-top:-3px"> Show password</div>
-
-                <div class="auth-message">WiFi country:<br>
-                    <select v-model="selected_country">
-                        <option v-for="(country,code) in countries" :value="code">{{ country }}</option>
-                    </select>
-                </div>
-
+                
                 <button class="btn" @click="wifi_client_mode='list'">Cancel</button> <button class="btn" @click="connect">Connect</button>
             </div>
 
@@ -286,17 +276,13 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             connect: function() {
                 this.wifi_client_mode = 'connect';
                 this.show_log_button = true;
-
-                var networks_to_save = {};
-                networks_to_save[this.selected_SSID] = {};
-                networks_to_save[this.selected_SSID]["PSK"] = this.selected_password
-
+                
                 if (app.mode=="setup") setup_set_status("client",false);
 
                 $.ajax({
                     type: 'POST',
                     url: "network/setconfig.json",
-                    data: "networks=" + encodeURIComponent(JSON.stringify(networks_to_save)) + "&country=" + this.selected_country,
+                    data: "ssid="+encodeURIComponent(this.selected_SSID)+"&psk="+encodeURIComponent(this.selected_password),
                     dataType: 'text',
                     async: true,
                     success: function(result) {
@@ -345,10 +331,10 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 for (var z in result) {
 
                     var signal = 0;
-                    if (result[z]["SIGNAL"] > -100) signal = 1;
-                    if (result[z]["SIGNAL"] > -85) signal = 2;
-                    if (result[z]["SIGNAL"] > -70) signal = 3;
-                    if (result[z]["SIGNAL"] > -60) signal = 4;
+                    if (result[z]["SIGNAL"] > 20) signal = 1;
+                    if (result[z]["SIGNAL"] > 40) signal = 2;
+                    if (result[z]["SIGNAL"] > 60) signal = 3;
+                    if (result[z]["SIGNAL"] > 80) signal = 4;
 
                     var secure = "secure";
                     if (result[z]["SECURITY"] == "ESS") secure = "";
@@ -367,43 +353,40 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             url: path + "network/status",
             dataType: "json",
             success: function(result) {
-
-                app.eth0.ip = result.eth0.IPAddress;
-
-                app.wlan0.service = result.wlan0.service;
-                app.ap0.service = result.ap0.service;
-
-                if (result.wlan0.service == "active") {
-                    app.wlan0.service = result.wlan0.service;
-                    app.wlan0.ssid = result.wlan0.SSID;
-                    app.wlan0.ip = result.wlan0.IPAddress;
-
+            
+                console.log(result)
+            
+                if (result.eth0 != undefined) {
+                    app.eth0.ip = result.eth0.ip
+                }
+            
+                if (result.wlan0 != undefined) {
+                    app.wlan0.ssid = result.wlan0.ssid
+                    app.wlan0.ip = result.wlan0.ip
+                    app.wlan0.state = result.wlan0.state
+                    
                     if (app.wifi_client_mode == "connect" && app.wlan0.ip) {
                         app.wifi_client_mode = 'connected';
-                    }
+                    }        
+                    
                 } else {
                     app.wlan0.ssid = "";
                     app.wlan0.ip = "---";
-                }
-
-                if (result.ap0.service == "active") {
-                    app.ap0.ip = result.ap0.IPAddress;
-                } else {
-                    app.ap0.ip = "---";
                 }
                 
                 // First run
                 if (first_run) {
                     first_run = false;
                     if (app.wlan0.service=="inactive") {
-                        app.service("wlan0","restart");
+                        // app.service("wlan0","restart");
                         setTimeout(function() {
                             scan();
                         },5000);
                     } else {
                         scan();
                     }
-                }
+                }          
+               
             }
         });
     }

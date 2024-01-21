@@ -33,18 +33,9 @@ function network_controller()
     // Write level access
     // ------------------------------------------------------------
     if ($session["write"] || $setup_access) {
-    
         if ($route->action=="") {
             $route->format = "html";
             return view("Modules/network/network_view.php",array("mode"=>"network")); 
-        } elseif ($route->action=="ap0") {
-            if (in_array($route->subaction,array("start","stop","restart","disable","enable"))) {
-                return $network->service("ap0",$route->subaction);
-            }
-        } elseif ($route->action=="wlan0") {
-            if (in_array($route->subaction,array("start","stop","restart","disable","enable"))) {
-                return $network->service("wlan0",$route->subaction);       
-            }
         }
     }
 
@@ -54,56 +45,23 @@ function network_controller()
     if ($session["read"] || $setup_access) {
         if ($route->action=="status") {
             return $network->status();
-        } elseif ($route->action=="info") {
-            return $network->info();
-        } elseif ($route->action=="getconfig") {
-            return $network->getconfig();
         } elseif ($route->action=="log" && in_array($route->subaction,array("ap0","wlan0"))) {
             $route->format = "text";
-            return $network->log($route->subaction);
+            // return $network->log($route->subaction);
         } elseif ($route->action=="scan") {
-            if (file_exists($settings["emoncms_dir"]."/modules/network/scripts/wifi_scan.php")) {
-                return cmd("wifi/scan",array());
-            } else {
-                return $network->scan();
-            }
+            $route->format = "json";
+            return $network->scan();
         }
     }
     
     if ($session["write"] || $setup_access) {
         if ($route->action=="setconfig") {
-              $networks = urldecode(post('networks'));
-              $country = "GB"; 
-              if (isset($_POST['country'])) {
-                $country = $_POST['country'];
-            }
-            return $network->setconfig(json_decode($networks),$country);
+            $route->format = "text";
+            $ssid = prop("ssid",true);
+            $psk = prop("psk",true);
+            return $network->connect_wlan0($ssid, $psk);
         }
     }
 
     return false;
 }
-
-
-function cmd($classmethod,$properties) {
-    global $settings, $redis;
-
-    if ($redis) {
-        $redis->del($classmethod); // 1. remove last result
-
-        $update_script = $settings["emoncms_dir"]."/modules/network/scripts/wifi_scan.sh";
-        $update_logfile = $settings['log']['location']."/wifiscan.log";
-        $redis->rpush("service-runner","$update_script>$update_logfile");
-
-        $start = time(); // 3. wait for result
-        while((time()-$start)<5.0) { 
-            $result = $redis->get($classmethod);
-            if ($result) {
-                return json_decode($result);
-            }
-            usleep(100000); // check every 100ms
-        }
-    }
-    return false;
-}
-

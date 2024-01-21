@@ -6,16 +6,6 @@ class Network
     {
         $this->log = new EmonLogger(__FILE__);
     }
-    
-    public function service($winterface, $action)
-    {
-        if ($action=="enable") $action = "enable --now";
-        if ($action=="disable") $action = "disable --now";
-            
-        $this->log->info("systemctl $action: wpa_supplicant@".$winterface.".service");
-        system("sudo systemctl $action wpa_supplicant@".$winterface.".service",$returnval);
-        return $winterface." ".$action;
-    }
 
     public function log($winterface)
     {
@@ -34,26 +24,27 @@ class Network
 
     public function scan()
     {
-        $this->log->info("scan: wpa_cli -i wlan0 scan");
-        exec("sudo wpa_cli -i wlan0 scan",$return);
-        sleep(3);
-
-        $scan_results = "";
-        exec("sudo wpa_cli -i wlan0 scan_results", $scan_results);
-
+        ob_start();
+        passthru("sudo /bin/nmcli device wifi rescan ifname wlan0");
+        $result = ob_get_clean();
+        sleep(1);
+        
+        ob_start();
+        passthru("nmcli --get-values ssid,mode,signal,security device wifi list ifname wlan0");
+        $result = ob_get_clean();
+        
         $networks = array();
-        foreach($scan_results as $network) {
-            if ($network!="bssid / frequency / signal level / flags / ssid") {
-                $arrNetwork = preg_split("/[\t]+/", $network);
-                if (isset($arrNetwork[4])) {
-                    $ssid = $arrNetwork[4];
-                    $networks[$ssid] = array(
-                        "BSSID"=>$arrNetwork[0],
-                        "CHANNEL"=>$arrNetwork[1],
-                        "SIGNAL"=>$arrNetwork[2],
-                        "SECURITY"=>substr($arrNetwork[3], 1, -1)
-                    );
-                }
+        $lines = explode("\n",$result);
+        foreach ($lines as $line) {
+            $parts = explode(":",$line);
+            
+            if (count($parts)==4 && $parts[0]!="" && $parts[2]!="0") {
+                $networks[] = array(
+                    "SSID"=>$parts[0],
+                    "MODE"=>$parts[1],
+                    "SIGNAL"=>(int) $parts[2],
+                    "SECURITY"=>$parts[3]
+                );
             }
         }
         return $networks;
@@ -62,236 +53,87 @@ class Network
 
     public function status()
     {
-        $status = array(
-            'eth0' => array(),
-            'wlan0' => array(),
-            'ap0' => array()
-        );
+        $status = array();
         
-        $status['eth0'] = $this->info("eth0");
-
-        $wlan0_status = $this->getServiceStatus("wpa_supplicant@wlan0.service");
-        if ($wlan0_status['ActiveState']=='active') {
-            $status['wlan0'] = $this->info("wlan0");
+        foreach (array("eth0","wlan0","ap0") as $interface) {
+    
+            if ($device = $this->get_device_status($interface)) {
+                
+                $ip = false;
+                if (isset($device["IP4.ADDRESS[1]"])) {
+                    $ip = explode("/",$device["IP4.ADDRESS[1]"]);
+                    $ip = $ip[0];
+                }
+                
+                // nmcli -t -f active,ssid dev wifi
+                
+                $ssid = "";
+                if ($interface=="wlan0") {
+                    $ssid = "OpenEnergyMonitor";
+                }
+            
+                $status[$device['GENERAL.DEVICE']] = array(
+                    "state" => $device['GENERAL.STATE'],
+                    "ip" => $ip,
+                    "ssid" => $ssid
+                );
+            }
         }
-        $status['wlan0']['service'] = $wlan0_status['ActiveState'];
-        
-        $ap0_status = $this->getServiceStatus("wpa_supplicant@ap0.service");
-        if ($ap0_status['ActiveState']=='active') {
-            $status['ap0'] = $this->info("ap0");
-        }
-        $status['ap0']['service'] = $ap0_status['ActiveState'];
         
         return $status;
     }
-
-    public function info($interface="wlan0")
-    {
-        $this->log->info("fetching ifconfig iwconfig info");
-        $return = "";
-        exec('/sbin/ifconfig '.$interface, $return);
-        exec('/sbin/iwconfig '.$interface, $return);
-        $strWlan0 = implode(" ", $return);
-        $strWlan0 = preg_replace('/\s\s+/', ' ', $strWlan0);
-
-        $wlan = array(
-            'RxBytes' => "",
-            'TxBytes' => "",
-        );
-
-        preg_match('/(?:HWaddr|ether) ([0-9a-f:]+)/i', $strWlan0, $result); // Adding MAC Address for onboard wifi
-        if (isset($result[1])) {
-            $wlan['MacAddress'] = $result[1];
-        }
-
-        preg_match('/inet (?:addr:)? ?([0-9.]+)/i', $strWlan0, $result);
-        if (isset($result[1])) {
-            $wlan['IPAddress'] = $result[1];
-        }
-
-        preg_match('/(?:Mask:|netmask) ?([0-9.]+)/i', $strWlan0, $result);
-        if (isset($result[1])) {
-            $wlan['SubNetMask'] = $result[1];
-        }
-
-        preg_match('/RX packets:?(\d+)/', $strWlan0, $result);
-        if (isset($result[1])) {
-            $wlan['RxPackets'] = $result[1];
-        }
-
-        preg_match('/TX packets:?(\d+)/', $strWlan0, $result);
-        if (isset($result[1])) {
-            $wlan['TxPackets'] = $result[1];
-        }
-
-        preg_match('/RX Bytes:(\d+ \(\d+.\d+ [K|M|G]iB\))/i', $strWlan0, $result);
-        if (isset($result[1])) {
-            $wlan['RxBytes'] = $result[1];
-        }
-
-        preg_match('/RX packets \d+ bytes (\d+ \(\d+.\d+ [K|M|G]iB\))/i', $strWlan0, $result); // Adding RX Bytes
-        if (isset($result[1])) {
-            $wlan['RxBytes'] = $result[1];
-        }
-
-        preg_match('/TX Bytes:(\d+ \(\d+.\d+ [K|M|G]iB\))/i', $strWlan0, $result);
-        if (isset($result[1])) {
-            $wlan['TxBytes'] = $result[1];
-        }
-
-        preg_match('/TX packets \d+ bytes (\d+ \(\d+.\d+ [K|M|G]iB\))/i', $strWlan0, $result); // Adding TX Bytes
-        if (isset($result[1])) {
-            $wlan['TxBytes'] = $result[1];
-        }
-
-        preg_match('/ESSID:\"([a-zA-Z0-9_\-\s]+)\"/i', $strWlan0, $result); //Added some additional charicters here
-        if (isset($result[1])) {
-            $wlan['SSID'] = str_replace('"', '', $result[1]);
-        }
-
-        preg_match('/Access Point: ([0-9a-f:]+)/i', $strWlan0, $result);
-        if (isset($result[1])) {
-            $wlan['BSSID'] = $result[1];
-        }
-
-        preg_match('/Bit Rate[:=]([0-9]+ Mb\/s)/i', $strWlan0, $result);
-        if (isset($result[1])) {
-            $wlan['Bitrate'] = $result[1];
-        }
-
-        preg_match('/Frequency:(\d+\.\d+ GHz)/i', $strWlan0, $result); //escaped the full stop here
-        if (isset($result[1])) {
-            $wlan['Freq'] = $result[1];
-        }
-
-        preg_match('/Link Quality=([0-9]+\/[0-9]+)/i', $strWlan0, $result);
-        if (isset($result[1])) {
-            $wlan['LinkQuality'] = $result[1];
-        }
-
-        // TODO: This first preg_match is a no-op
-        preg_match('/Signal Level=([0-9]+\/[0-9]+)/i', $strWlan0, $result);
-        preg_match('/Signal Level=(\-[0-9]+ dBm)/i', $strWlan0, $result); //Added alternative Signal Level Measure
-        if (isset($result[1])) {
-            $wlan['SignalLevel'] = $result[1];
-        }
-
-        if ( (strpos($strWlan0, "ESSID") !== false) && (isset($wlan['SSID'])) ) {
-            $wlan['status'] = "connected"; 
-        } else {
-            $wlan['status'] = "disconnected";
-        }
-
-        return $wlan; //Removed a few whitespace lines here
-    }
-
-    public function getconfig()
-    {
-        $this->log->info("fetching wpa_supplicant.conf");
-        exec('sudo cat /etc/wpa_supplicant/wpa_supplicant-wlan0.conf',$return);
-        $ssid = array();
-        $psk = array();
-        $country = "";
-        foreach($return as $a) {
-            if(preg_match('/SSID/i',$a)) {
-                $arrssid = explode("=", $a);
-                $ssid[] = str_replace('"', '', $arrssid[1]);
-            }
-            if(preg_match('/\#psk/i',$a)) {
-                $arrpsk = explode("=", $a);
-                $psk[] = str_replace('"', '', $arrpsk[1]);
-            }
-            if(preg_match('/country/i',$a)) {
-                $arrcountry = explode("=", $a); 
-                $country = trim($arrcountry[1]);
-            }
-        }
-        $numSSIDs = count($ssid);
-        if (strlen($country) != 2) {
-            $country = "GB";
-        }
-
-        $registered = array();
-        for($i = 0; $i < $numSSIDs; $i++) {
-            $registered[$ssid[$i]] = array();
-            if (isset($psk[$i])) {
-                $registered[$ssid[$i]]["PSK"] = $psk[$i];
-            }
-            $registered[$ssid[$i]]["SIGNAL"] = 0;
-        }
-        return array("networks" => $registered, "country" => $country);
-    }
-
-    public function setconfig($networks,$country_code)
-    {
-        global $settings;
-
-        $country_code = strtoupper($country_code);
-        if (strlen($country_code) != 2) {
-            return array("success" => false, "message" => "Country code must be characters long");
-        }
-
-        $config = "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev\nupdate_config=1\ncountry=$country_code\n\n";
-        if(!empty($networks)) {
-            foreach ($networks as $ssid=>$network) {
-                if (!empty($network->PSK) && (strlen($network->PSK) >= 8 && strlen($network->PSK) < 64)) {
-                    $psk = hash_pbkdf2("sha1", $network->PSK, $ssid, 4096, 64);
-                    $config .= sprintf("\nnetwork={\n\tssid=\"%s\"\n\t#psk=\"%s\"\n\tpsk=%s\n}\n", $ssid, $network->PSK, $psk);
-                } else {
-                    $config .= "network={\n  ssid=" . '"' . $ssid . '"' . "\n  key_mgmt=NONE\n}\n";
-                }
-            }
-        }
-
-        $this->log->info("Writing to wpa_supplicant.conf");
+    
+    public function get_device_status($interface) {
+        // Parse wlan0
+        ob_start();
+        passthru("nmcli -f GENERAL.DEVICE,IP4.ADDRESS,GENERAL.STATE device show $interface");
+        $result = ob_get_clean();
+        $wlan0 = explode("\n",$result);
         
-        if (!$file = fopen('/tmp/wifidata', 'w')) {
-            $this->log->error("Could not write to /tmp/wifidata");
+        if ($result == "Error: Device '$interface' not found.") return false;
+        
+        // Initialize an associative array to store the information
+        $wlan0_info = [];
+
+        // Loop through each line of the output
+        foreach ($wlan0 as $line) {
+            // Split the line into key and value
+            $parts = explode(':', $line, 2);
+
+            if (count($parts) === 2) {
+                // Trim whitespace and assign the values to the associative array
+                $key = trim($parts[0]);
+                $value = trim($parts[1]);
+
+                // Map the output to the associative array
+                $wlan0_info[$key] = $value;
+            }
+        }
+        return $wlan0_info;
+    }
+
+    public function connect_wlan0($ssid, $psk)
+    {
+        if (!preg_match('/^[a-zA-Z0-9_-]{1,32}$/', $ssid)) {
+            return "Invalid SSID";
+        }
+    
+        $psk = hash_pbkdf2("sha1", $psk, $ssid, 4096, 64);
+
+        $config = "[WiFi]\nssid=$ssid\npassword=$psk";
+
+        if (!$file = fopen('/tmp/wifi-config.ini', 'w')) {
+            $this->log->error("Could not write to /tmp/wifi-config.ini");
         }
         fwrite($file, $config);
         fclose($file);
-
-        system('sudo cp /tmp/wifidata /etc/wpa_supplicant/wpa_supplicant-wlan0.conf',$returnval);
-        $this->log->info("copy response $returnval");
         
-        system('sudo systemctl restart wpa_supplicant@wlan0.service',$returnval);
-        $this->log->info("restart wpa_supplicant@wlan0.service $returnval");
-        
-        return $config;
-    }
-    
-    /**
-     * get running status of service
-     *
-     * @param string $name
-     * @return array | true == running | false == stopped | empty == not installed
-     */
-    public function getServiceStatus($name) {
-        if (!$exec = $this->exec_array('systemctl show '.$name.' | grep State')) {
-            return array();
-        }
-        $status = array();
+        // Run via wrapper: 
+        // nmcli dev wifi connect "$ssid" password "$password" ifname wlan0
 
-        foreach ($exec as $line) {
-            $parts = explode('=',$line);
-            $status[$parts[0]] = $parts[1];
-        }
-
-        $return = array();
-        $keys = array("LoadState","ActiveState","SubState","UnitFileState");
-        foreach ($keys as $key) {
-            if (isset($status[$key])) {
-                $return[$key] = $status[$key];
-            }
-        }
-        return $return;
-    }
-    
-    private function exec_array($cmd) {
-        $output = false;
-        if (function_exists("exec")) {
-            @exec($cmd,$output);
-        }
-        return $output;
+        exec("sudo /opt/emoncms/modules/network/scripts/wifi_connect.sh",$result);        
+        // Remove ANSI escape sequences and carriage returns
+        $result = preg_replace('/[\x00-\x1F\x7F\x1B\[2K\r]/', '', $result[0]);
+        return $result;
     }
 }
