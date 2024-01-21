@@ -61,6 +61,14 @@ function network_controller()
             $psk = prop("psk",true);
             return $network->connect_wlan0($ssid, $psk);
         }
+        
+        if ($route->action=="startAP") {
+            return $network->startAP();
+        }
+
+        if ($route->action=="stopAP") {
+            return $network->stopAP();
+        }
     }
 
     return false;

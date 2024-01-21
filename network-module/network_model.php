@@ -134,4 +134,12 @@ class Network
         $result = preg_replace('/[\x00-\x1F\x7F\x1B\[2K\r]/', '', $result[0]);
         return $result;
     }
+    
+    public function startAP() {
+        exec("sudo /opt/emoncms/modules/network/scripts/startAP.sh",$result);        
+    }
+    
+    public function stopAP() {
+        exec("sudo /opt/emoncms/modules/network/scripts/stopAP.sh",$result);        
+    }
 }

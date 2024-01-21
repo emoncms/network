@@ -144,8 +144,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             </div>
             <div class="span4 box-border">
                 <div class="btn-group" style="float:right">
-                    <button class="btn" @click="service('ap0','enable')" v-if="ap0.service=='inactive'">Enable</button>
-                    <button class="btn" @click="service('ap0','disable')" v-if="ap0.service!='inactive'">Disable</button>
+                    <button class="btn" @click="startAP" v-if="ap0.state!='100 (connected)'">Enable</button>
+                    <button class="btn" @click="stopAP" v-if="ap0.state=='100 (connected)'">Disable</button>
 
                 </div>
                 <h4>WiFi Access Point</h4>
@@ -255,6 +255,28 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
         },
         methods: {
+            startAP: function() {
+                $.ajax({
+                    type: 'POST',
+                    url: "network/startAP.json",
+                    dataType: 'text',
+                    async: true,
+                    success: function(result) {
+                    
+                    }
+                });
+            },
+            stopAP: function() {
+                $.ajax({
+                    type: 'POST',
+                    url: "network/stopAP.json",
+                    dataType: 'text',
+                    async: true,
+                    success: function(result) {
+                    
+                    }
+                });
+            },
             setup: function(setup_mode) {
                 if (setup_mode=="ethernet" || setup_mode=="standalone") {
                     setup_set_status(setup_mode,true);
@@ -367,12 +389,24 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     
                     if (app.wifi_client_mode == "connect" && app.wlan0.ip) {
                         app.wifi_client_mode = 'connected';
-                    }        
-                    
+                    }
                 } else {
                     app.wlan0.ssid = "";
                     app.wlan0.ip = "---";
+                    app.wlan0.state = "";
                 }
+                
+                if (result.ap0 != undefined) {
+                    app.ap0.ssid = "emonPi"
+                    app.ap0.ip = result.ap0.ip
+                    app.ap0.state = result.ap0.state
+                    
+                } else {
+                    app.ap0.ssid = "";
+                    app.ap0.ip = "---";
+                    app.ap0.state = "";
+                } 
+                
                 
                 // First run
                 if (first_run) {
