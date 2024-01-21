@@ -24,9 +24,7 @@ class Network
 
     public function scan()
     {
-        ob_start();
-        passthru("sudo /bin/nmcli device wifi rescan ifname wlan0");
-        $result = ob_get_clean();
+        exec("sudo /opt/emoncms/modules/network/scripts/wifi_rescan.sh",$result);
         sleep(1);
         
         ob_start();
