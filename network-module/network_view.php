@@ -196,10 +196,6 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
         <div class="network-box" v-if="show_log_button && (mode=='network' || setup_stage==2)">
             <div style="margin-bottom:10px">
-                <div class="btn-group" style="float:right" v-if="show_log">
-                    <button class="btn" :class="{ 'btn-info' : log_interface=='ap0' }" @click="show_log('ap0')">Access Point</button>
-                    <button class="btn" :class="{ 'btn-info' : log_interface=='wlan0' }" @click="show_log('wlan0')">Client</button>
-                </div>
                 <button class="btn" v-if="!show_log" @click="show_log=true">Show network log</button>
                 <button class="btn" v-if="show_log" @click="show_log=false">Hide network log</button>
             </div>
@@ -247,8 +243,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             selected_country: "GB",
 
             countries: <?php echo json_encode($countries); ?>,
-
-            log_interface: 'wlan0',
+            
             log: "",
             show_log: false,
             show_log_button: true
@@ -313,20 +308,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 });
             },
 
-            service: function(winterface, action) {
-                this.log_interface = winterface;
-
-                $.ajax({
-                    url: path + "network/" + winterface + "/" + action,
-                    dataType: "json",
-                    success: function(result) {
-
-                    }
-                });
-            },
-
-            show_log: function(winterface) {
-                this.log_interface = winterface
+            show_log: function() {
                 update_log();
             }
         }
@@ -434,7 +416,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
     function update_log() {
         $.ajax({
-            url: path + "network/log/" + app.log_interface,
+            url: path + "network/log",
             dataType: "text",
             success: function(result) {
                 app.log = result;

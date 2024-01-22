@@ -45,9 +45,9 @@ function network_controller()
     if ($session["read"] || $setup_access) {
         if ($route->action=="status") {
             return $network->status();
-        } elseif ($route->action=="log" && in_array($route->subaction,array("ap0","wlan0"))) {
+        } elseif ($route->action=="log") {
             $route->format = "text";
-            // return $network->log($route->subaction);
+            return $network->log();
         } elseif ($route->action=="scan") {
             $route->format = "json";
             return $network->scan();

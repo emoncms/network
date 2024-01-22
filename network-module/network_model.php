@@ -2,24 +2,28 @@
 
 class Network
 {
+    private $moduledir = "";
+
     public function __construct()
     {
         $this->log = new EmonLogger(__FILE__);
+        
+        global $settings;
+        $this->moduledir = $settings["emoncms_dir"]."/modules/network/";
     }
 
-    public function log($winterface)
+    public function log()
     {
-        global $settings;
-
-        if (file_exists($settings["emoncms_dir"].'/modules/network/scripts/log_'.$winterface.'.sh')) {
-            exec("sudo ".$settings["emoncms_dir"].'/modules/network/scripts/log_'.$winterface.'.sh',$out);
+        $log_script = $this->moduledir.'scripts/nm_log.sh';
+        if (file_exists($log_script)) {
+            exec("sudo ".$log_script,$out);
             $result = "";
             foreach($out as $line) {
                 $result .= $line."\n";
             }
             return $result;
         }
-        return "Error: Cannot find ".$settings["emoncms_dir"].'/modules/network/scripts/log_'.$winterface.'.sh';
+        return "Error: Cannot find ".$log_script;
     }
 
     public function scan()
