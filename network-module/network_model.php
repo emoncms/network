@@ -66,13 +66,6 @@ class Network
                     $ip = explode("/",$device["IP4.ADDRESS[1]"]);
                     $ip = $ip[0];
                 }
-                
-                // nmcli -t -f active,ssid dev wifi
-                
-                $ssid = "";
-                if ($interface=="wlan0") {
-                    $ssid = "OpenEnergyMonitor";
-                }
             
                 // split GENERAL.STATE into state_code and state_description
                 $state = explode(" ",$device['GENERAL.STATE']);
@@ -86,8 +79,9 @@ class Network
                 $status[$device['GENERAL.DEVICE']] = array(
                     "state_code" => $state_code,
                     "state_description" => $state_description,
+                    "connection" => $device['GENERAL.CONNECTION'],
                     "ip" => $ip,
-                    "ssid" => $ssid
+                    "ssid" => $device['SSID']
                 );
             }
         }
@@ -98,7 +92,7 @@ class Network
     public function get_device_status($interface) {
         // Parse wlan0
         ob_start();
-        passthru("nmcli -f GENERAL.DEVICE,IP4.ADDRESS,GENERAL.STATE device show $interface");
+        passthru("nmcli -f GENERAL.DEVICE,IP4.ADDRESS,GENERAL.STATE,GENERAL.CONNECTION device show $interface");
         $result = ob_get_clean();
         $wlan0 = explode("\n",$result);
         
@@ -121,6 +115,20 @@ class Network
                 $wlan0_info[$key] = $value;
             }
         }
+
+        $wlan0_info["SSID"] = "";
+        if ($interface!="eth0") {
+            // Get SSID
+            ob_start();
+            passthru("nmcli -t -f 802-11-wireless.ssid con show ".trim($wlan0_info['GENERAL.CONNECTION']));
+            $result = ob_get_clean();
+            // result is given as 802-11-wireless.ssid:SSID
+            $parts = explode(":",$result);
+            if (count($parts)==2) {
+                $wlan0_info["SSID"] = trim($parts[1]);
+            }
+        }
+
         return $wlan0_info;
     }
 
