@@ -13,52 +13,26 @@ else
     eth0status=0
 fi
 
-wlan0status=$(systemctl show wpa_supplicant@wlan0 | grep ActiveState)
-if [ $wlan0status = "ActiveState=active" ]
+# 2) Check to see if access point is UP and get ip address
+if [ -f /sys/class/net/ap0/carrier ]
 then
-   wlan0status=1
-   wlan0ip=$(ip addr show wlan0 | grep -Po 'inet \K[\d.]+')
-   echo "- wlan0 active ($wlan0ip)"
-else 
-   wlan0status=0
-fi
-
-ap0status=$(systemctl show wpa_supplicant@ap0 | grep ActiveState)
-if [ $ap0status = "ActiveState=active" ]
-then
-   ap0status=1
-   ap0ip=$(ip addr show ap0 | grep -Po 'inet \K[\d.]+')
-   echo "- ap0 active ($ap0ip)"
-else 
-   ap0status=0
-fi
-
-if grep -q "network" /etc/wpa_supplicant/wpa_supplicant-wlan0.conf
-then
-    echo "- network found in wpa_supplicant-wlan0.conf"
-    wlan0config=1
+    ap0status=$(cat /sys/class/net/ap0/carrier)
+    ap0ip=$(ip addr show ap0 | grep -Po 'inet \K[\d.]+')
+    echo "- ap0 active ($ap0ip)"
 else
-    echo "- no network in wpa_supplicant-wlan0.conf"
-    wlan0config=0
+    ap0status=0
 fi
 
-# Start access point if no ethernet, access point is not already running and no wlan0 config
-if [ $wlan0config -eq 0 ] && [ $ap0status -eq 0 ] && [ $eth0status -eq 0 ]
+# 3) Check to see if wlan0 is UP and get ip address
+if [ -f /sys/class/net/wlan0/carrier ]
 then
-    echo "STARTING AP0"
-    systemctl enable --now wpa_supplicant@ap0.service
+    wlan0status=$(cat /sys/class/net/wlan0/carrier)
+    wlan0ip=$(ip addr show wlan0 | grep -Po 'inet \K[\d.]+')
+    echo "- wlan0 active ($wlan0ip)"
+else
+    wlan0status=0
 fi
 
-# Restart wlan0 if wlan0status inactive
-if [ $wlan0status -eq 0 ]
-then
-    echo "RESTART WLAN0"
-    systemctl restart wpa_supplicant@wlan0.service
-fi
-
-if [ $wlan0status -eq 1 ] && [ $wlan0config -eq 1 ] && [ ! $wlan0ip ]
-then
-    echo "wlan0 up, network config exists but no IP address"
-    echo "RESTART WLAN0"
-    systemctl restart wpa_supplicant@wlan0.service
-fi
+echo "eth0status=$eth0status"
+echo "ap0status=$ap0status"
+echo "wlan0status=$wlan0status"
