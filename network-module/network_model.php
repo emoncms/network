@@ -74,8 +74,18 @@ class Network
                     $ssid = "OpenEnergyMonitor";
                 }
             
+                // split GENERAL.STATE into state_code and state_description
+                $state = explode(" ",$device['GENERAL.STATE']);
+                $state_code = $state[0];
+                $state_description = $state[1];
+                // strip opening and closing brackets if present
+                $state_description = trim($state_description,"()");
+                // upper case first letter
+                $state_description = ucfirst($state_description);
+
                 $status[$device['GENERAL.DEVICE']] = array(
-                    "state" => $device['GENERAL.STATE'],
+                    "state_code" => $state_code,
+                    "state_description" => $state_description,
                     "ip" => $ip,
                     "ssid" => $ssid
                 );

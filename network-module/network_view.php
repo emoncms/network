@@ -117,6 +117,20 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         font-size: 22px;
         color: #fff;
     }
+
+    .iface-heading {
+        font-size: 18px;
+        color: #fff;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        font-weight: bold;
+    }
+    .iface-status {
+        font-weight: normal;
+        font-size: 16px;
+    }
+
+    
 </style>
 <div style="color:#fff">
     <div id="network-app">
@@ -139,23 +153,23 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     
         <div class="row-fluid" style="margin-bottom:20px" v-if="mode=='network'">
             <div class="span4 box-border" style="height:120px">
-                <h4>Ethernet <span>{{ eth0.state }}</span></h4>
+            <div class="iface-heading">Ethernet <span class="iface-status">({{ eth0.state_description }})</span></div>
                 <p><b>IP Address:</b> {{ eth0.ip }}</p>
             </div>
             <div class="span4 box-border">
                 <div class="btn-group" style="float:right">
-                    <button class="btn" @click="startAP" v-if="ap0.state!='100 (connected)'">Enable</button>
-                    <button class="btn" @click="stopAP" v-if="ap0.state=='100 (connected)'">Disable</button>
+                    <button class="btn" @click="startAP" v-if="ap0.state_description!='connected'">Enable</button>
+                    <button class="btn" @click="stopAP" v-if="ap0.state_description=='connected'">Disable</button>
 
                 </div>
-                <h4>WiFi Access Point <span>{{ ap0.state }}</span></h4>
+                <div class="iface-heading">WiFi Hotspot <span class="iface-status">({{ ap0.state_description }})</span></div>
                 <p><b>SSID:</b> {{ ap0.ssid }}</p>
                 <p><b>IP Address:</b> {{ ap0.ip }}</p>
 
             </div>
 
             <div class="span4 box-border">
-                <h4>WiFi Client <span>{{ wlan0.state }}</span></h4>
+                <div class="iface-heading">WiFi Client <span class="iface-status">({{ wlan0.state_description }})</span></div>
                 <p><b>SSID:</b> {{ wlan0.ssid }}</p>
                 <p><b>IP Address:</b> {{ wlan0.ip }}</p>
             </div>
@@ -359,13 +373,17 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 for (var z in interfaces) {
                     let iface = interfaces[z];
                 
-                    app[iface].state = "";
+                    app[iface].state_code = "";
+                    app[iface].state_description = "";
                     app[iface].ssid = "";
                     app[iface].ip = "---"; 
             
                     if (result[iface] != undefined) {
-                        if (result[iface].state!=undefined) {
-                            app[iface].state = result[iface].state
+                        if (result[iface].state_code!=undefined) {
+                            app[iface].state_code = result[iface].state_code
+                        }
+                        if (result[iface].state_description!=undefined) {
+                            app[iface].state_description = result[iface].state_description
                         }
                         if (result[iface].ssid!=undefined) {
                             app[iface].ssid = result[iface].ssid
