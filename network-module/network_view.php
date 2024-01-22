@@ -139,7 +139,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     
         <div class="row-fluid" style="margin-bottom:20px" v-if="mode=='network'">
             <div class="span4 box-border" style="height:120px">
-                <h4>Ethernet</h4>
+                <h4>Ethernet <span>{{ eth0.state }}</span></h4>
                 <p><b>IP Address:</b> {{ eth0.ip }}</p>
             </div>
             <div class="span4 box-border">
@@ -148,15 +148,14 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     <button class="btn" @click="stopAP" v-if="ap0.state=='100 (connected)'">Disable</button>
 
                 </div>
-                <h4>WiFi Access Point</h4>
+                <h4>WiFi Access Point <span>{{ ap0.state }}</span></h4>
                 <p><b>SSID:</b> {{ ap0.ssid }}</p>
                 <p><b>IP Address:</b> {{ ap0.ip }}</p>
 
             </div>
 
             <div class="span4 box-border">
-                <div style="float:right">{{ wlan0.state }}</div>
-                <h4>WiFi Client</h4>
+                <h4>WiFi Client <span>{{ wlan0.state }}</span></h4>
                 <p><b>SSID:</b> {{ wlan0.ssid }}</p>
                 <p><b>IP Address:</b> {{ wlan0.ip }}</p>
             </div>
@@ -224,12 +223,10 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
             },
             wlan0: {
-                service: "",
                 ssid: "",
                 ip: ""
             },
             ap0: {
-                service: "",
                 ssid: "emonPi",
                 ip: ""
             },
@@ -257,7 +254,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     dataType: 'text',
                     async: true,
                     success: function(result) {
-                    
+                        update_status();
                     }
                 });
             },
@@ -268,7 +265,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     dataType: 'text',
                     async: true,
                     success: function(result) {
-                    
+                        update_status();
                     }
                 });
             },
@@ -298,7 +295,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
                 $.ajax({
                     type: 'POST',
-                    url: "network/setconfig.json",
+                    url: "network/connect-wlan0.json",
                     data: "ssid="+encodeURIComponent(this.selected_SSID)+"&psk="+encodeURIComponent(this.selected_password),
                     dataType: 'text',
                     async: true,
@@ -341,7 +338,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     if (result[z]["SIGNAL"] > 80) signal = 4;
 
                     var secure = "secure";
-                    if (result[z]["SECURITY"] == "ESS") secure = "";
+                    if (result[z]["SECURITY"] == "") secure = "";
 
                     result[z].icon = "wifi" + signal + secure;
                 }
@@ -357,50 +354,36 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             url: path + "network/status",
             dataType: "json",
             success: function(result) {
+                
+                var interfaces = ["eth0","wlan0","ap0"];
+                for (var z in interfaces) {
+                    let iface = interfaces[z];
+                
+                    app[iface].state = "";
+                    app[iface].ssid = "";
+                    app[iface].ip = "---"; 
             
-                console.log(result)
-            
-                if (result.eth0 != undefined) {
-                    app.eth0.ip = result.eth0.ip
-                }
-            
-                if (result.wlan0 != undefined) {
-                    app.wlan0.ssid = result.wlan0.ssid
-                    app.wlan0.ip = result.wlan0.ip
-                    app.wlan0.state = result.wlan0.state
-                    
-                    if (app.wifi_client_mode == "connect" && app.wlan0.ip) {
-                        app.wifi_client_mode = 'connected';
+                    if (result[iface] != undefined) {
+                        if (result[iface].state!=undefined) {
+                            app[iface].state = result[iface].state
+                        }
+                        if (result[iface].ssid!=undefined) {
+                            app[iface].ssid = result[iface].ssid
+                        }
+                        if (result[iface].ip!=undefined && result[iface].ip) {
+                            app[iface].ip = result[iface].ip
+                        }
                     }
-                } else {
-                    app.wlan0.ssid = "";
-                    app.wlan0.ip = "---";
-                    app.wlan0.state = "";
                 }
-                
-                if (result.ap0 != undefined) {
-                    app.ap0.ssid = "emonPi"
-                    app.ap0.ip = result.ap0.ip
-                    app.ap0.state = result.ap0.state
-                    
-                } else {
-                    app.ap0.ssid = "";
-                    app.ap0.ip = "---";
-                    app.ap0.state = "";
-                } 
-                
+
+                if (app.wifi_client_mode == "connect" && app.wlan0.ip) {
+                    app.wifi_client_mode = 'connected';
+                }
                 
                 // First run
                 if (first_run) {
                     first_run = false;
-                    if (app.wlan0.service=="inactive") {
-                        // app.service("wlan0","restart");
-                        setTimeout(function() {
-                            scan();
-                        },5000);
-                    } else {
-                        scan();
-                    }
+                    scan();
                 }          
                
             }

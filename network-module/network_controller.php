@@ -55,7 +55,7 @@ function network_controller()
     }
     
     if ($session["write"] || $setup_access) {
-        if ($route->action=="setconfig") {
+        if ($route->action=="connect-wlan0") {
             $route->format = "text";
             $ssid = prop("ssid",true);
             $psk = prop("psk",true);
