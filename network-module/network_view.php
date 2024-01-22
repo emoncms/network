@@ -158,8 +158,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             </div>
             <div class="span4 box-border">
                 <div class="btn-group" style="float:right">
-                    <button class="btn" @click="startAP" v-if="ap0.state_description!='connected'">Enable</button>
-                    <button class="btn" @click="stopAP" v-if="ap0.state_description=='connected'">Disable</button>
+                    <button class="btn" @click="startAP" v-if="ap0.state_description!='Connected'">Enable</button>
+                    <button class="btn" @click="stopAP" v-if="ap0.state_description=='Connected'">Disable</button>
 
                 </div>
                 <div class="iface-heading">WiFi Hotspot <span class="iface-status">({{ ap0.state_description }})</span></div>
@@ -263,8 +263,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         methods: {
             startAP: function() {
                 $.ajax({
-                    type: 'POST',
-                    url: "network/startAP.json",
+                    type: 'GET',
+                    url: "network/startAP",
                     dataType: 'text',
                     async: true,
                     success: function(result) {
@@ -274,8 +274,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             },
             stopAP: function() {
                 $.ajax({
-                    type: 'POST',
-                    url: "network/stopAP.json",
+                    type: 'GET',
+                    url: "network/stopAP",
                     dataType: 'text',
                     async: true,
                     success: function(result) {

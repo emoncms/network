@@ -158,10 +158,16 @@ class Network
     }
     
     public function startAP() {
-        exec("sudo /opt/emoncms/modules/network/scripts/startAP.sh",$result);        
+        ob_start();
+        passthru("sudo /opt/emoncms/modules/network/scripts/startAP.sh");
+        $result = ob_get_clean();
+        return $result;
     }
     
     public function stopAP() {
-        exec("sudo /opt/emoncms/modules/network/scripts/stopAP.sh",$result);        
+        ob_start();
+        passthru("sudo /opt/emoncms/modules/network/scripts/stopAP.sh");
+        $result = ob_get_clean();
+        return $result;      
     }
 }

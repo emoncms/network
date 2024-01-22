@@ -21,8 +21,6 @@ function network_controller()
     require "Modules/network/network_model.php";
     $network = new Network();
 
-    $result = false;
-
     // Special setup access to WIFI function scan and setconfig
     $setup_access = false;
     if (isset($_SESSION['setup_access']) && $_SESSION['setup_access']) {
@@ -55,6 +53,7 @@ function network_controller()
     }
     
     if ($session["write"] || $setup_access) {
+
         if ($route->action=="connect-wlan0") {
             $route->format = "text";
             $ssid = prop("ssid",true);
@@ -63,10 +62,12 @@ function network_controller()
         }
         
         if ($route->action=="startAP") {
+            $route->format = "text";
             return $network->startAP();
         }
 
         if ($route->action=="stopAP") {
+            $route->format = "text";
             return $network->stopAP();
         }
     }
