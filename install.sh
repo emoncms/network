@@ -25,13 +25,13 @@ EOF
 # ------------------------------------------------------
 # wifi-check not yet implemented (to review)
 # ------------------------------------------------------
-# ln -sf /opt/emoncms/modules/network/scripts/wifi-check /usr/local/bin/wifi-check
+ln -sf /opt/emoncms/modules/network/scripts/wifi-check /usr/local/bin/wifi-check
 
-# sudo crontab -l > mycron
-# if grep -Fq "wifi-check" mycron; then
-#     echo "wifi-check already present in crontab"
-# else
-#     echo "* * * * * /usr/local/bin/wifi-check >> /var/log/emoncms/wificheck.log 2>&1" >> mycron
-#     sudo crontab mycron
-#     rm mycron
-# fi
+crontab -l > mycron
+if grep -Fq "wifi-check" mycron; then
+    echo "wifi-check already present in crontab"
+else
+    echo "*/15 * * * * /usr/local/bin/wifi-check >> /var/log/emoncms/wificheck.log 2>&1" >> mycron
+    crontab mycron
+    rm mycron
+fi
