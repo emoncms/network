@@ -24,7 +24,7 @@ For best results update emonpi and emoncms/setup modules:
     cd /opt/openenergymonitor/emonpi
     git pull origin
     git fetch origin
-    git checkout wifi3
+    git checkout nmcli
 
     cd /var/www/emoncms/Modules/setup
     git pull origin
