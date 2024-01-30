@@ -143,9 +143,9 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
             <div v-if="setup_stage==1">
                 <p style="font-size:18px"><b>Network Configuration:</b> Would you like to:</p>
-                <div class="setupbox" @click="setup('ethernet')" v-if="eth0.ip">Continue on Ethernet</div>
-                <div class="setupbox" @click="setup('standalone')" v-if="ap0.service!='inactive'">Continue in stand-alone WiFi Access Point mode</div>
-                <div class="setupbox" @click="setup('client')" v-if="wlan0.service!='inactive'">Connect to WiFi network</div>
+                <div class="setupbox" @click="setup('ethernet')" v-if="eth0.ip!='---'">Continue on Ethernet</div>
+                <div class="setupbox" @click="setup('standalone')" v-if="ap0.state_description=='Connected'">Continue in stand-alone WiFi Access Point mode</div>
+                <div class="setupbox" @click="setup('client')">Connect to WiFi network</div>
             </div>
         </div>
 
@@ -234,15 +234,17 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             mode: mode,
             setup_stage: 1,
             eth0: {
-
+                ip: "---"
             },
             wlan0: {
                 ssid: "",
-                ip: ""
+                ip: "---",
+                state_description: ""
             },
             ap0: {
                 ssid: "emonPi",
-                ip: ""
+                ip: "---",
+                state_description: ""
             },
 
             wifi_client_mode: 'scan',
@@ -402,8 +404,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 if (first_run) {
                     first_run = false;
                     scan();
-                }          
-               
+                }
             }
         });
     }
