@@ -13,6 +13,7 @@ fi
 # ------------------------------------------------------
 # Install network-sudoers
 # ------------------------------------------------------
+echo "-- install /etc/sudoers.d/network-sudoers"
 filename=/etc/sudoers.d/network-sudoers
 cat > $filename <<-EOF                                                                                   
 www-data ALL=(ALL) NOPASSWD:/opt/emoncms/modules/network/scripts/wifi_connect.sh
@@ -22,11 +23,27 @@ www-data ALL=(ALL) NOPASSWD:/opt/emoncms/modules/network/scripts/stopAP.sh
 www-data ALL=(ALL) NOPASSWD:/opt/emoncms/modules/network/scripts/nm_log.sh
 EOF
 
+echo "-- configure /etc/NetworkManager/NetworkManager.conf"
+filename=/etc/NetworkManager/NetworkManager.conf
+cat > $filename <<-EOF  
+[main]
+plugins=ifupdown,keyfile
+dns=dnsmasq
+
+[ifupdown]
+managed=false
+
+[device]
+wifi.scan-rand-mac-address=no
+EOF
+
 # ------------------------------------------------------
 # wifi-check not yet implemented (to review)
 # ------------------------------------------------------
+echo "-- install /usr/local/bin/wifi-check"
 ln -sf /opt/emoncms/modules/network/scripts/wifi-check /usr/local/bin/wifi-check
 
+echo "-- install wifi-check cron entry"
 crontab -l > mycron
 if grep -Fq "wifi-check" mycron; then
     echo "wifi-check already present in crontab"
