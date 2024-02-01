@@ -13,6 +13,7 @@ fi
 echo "-- install default network module config"
 if [ ! -f /opt/emoncms/modules/network/config.ini ]; then 
     cp /opt/emoncms/modules/network/default.config.ini /opt/emoncms/modules/network/config.ini
+    chown pi:pi /opt/emoncms/modules/network/config.ini
 fi
 
 # ------------------------------------------------------
