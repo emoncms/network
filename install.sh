@@ -10,6 +10,11 @@ if [[ $EUID -ne 0 ]]; then
 	exit 1
 fi
 
+echo "-- install default network module config"
+if [ ! -f /opt/emoncms/modules/network/config.ini ]; then 
+    cp /opt/emoncms/modules/network/default.config.ini /opt/emoncms/modules/network/config.ini
+fi
+
 # ------------------------------------------------------
 # Install network-sudoers
 # ------------------------------------------------------
