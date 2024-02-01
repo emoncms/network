@@ -6,6 +6,18 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
+config_file=/opt/emoncms/modules/network/config.ini
+if [ -f $config_file ]; then
+    # Use awk to extract values from the config file
+    ssid=$(awk -F ' *= *' '/ssid/{print $2}' "$config_file" | tr -d '"')
+    psk=$(awk -F ' *= *' '/psk/{print $2}' "$config_file" | tr -d '"')
+else
+    echo "missing config file"
+fi
+
+ssid=${ssid:-"emonPi"}
+psk=${psk:-"emonpi2016"}
+
 # Check if the interface ap0 exists
 if /usr/sbin/ip link show ap0 > /dev/null 2>&1; then
     echo "The interface 'ap0' already exists."
@@ -27,11 +39,11 @@ EOF
 nmcli con delete hotspot
 
 # Step 1: Create a new Wi-Fi connection profile
-nmcli con add type wifi ifname ap0 con-name hotspot autoconnect no ssid emonPi
+nmcli con add type wifi ifname ap0 con-name hotspot autoconnect no ssid $ssid
 
 # Set Wi-Fi security (Assuming WPA-PSK here)
 nmcli con modify hotspot 802-11-wireless-security.key-mgmt wpa-psk
-nmcli con modify hotspot 802-11-wireless-security.psk emonpi2016
+nmcli con modify hotspot 802-11-wireless-security.psk $psk
 
 # Step 2: Modify the connection with static IP settings
 nmcli con modify hotspot ipv4.addresses 192.168.42.1/24

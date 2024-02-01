@@ -80,11 +80,26 @@ client_configurations=$(ls /etc/NetworkManager/system-connections -1 | grep -v "
 echo "- $client_configurations client configuration"
 
 # ---------------------------------------------------
+# Load config file
+# ---------------------------------------------------
+config_file=/opt/emoncms/modules/network/config.ini
+if [ -f $config_file ]; then
+    # Use awk to extract values from the config file
+    start_on_boot=$(awk -F ' *= *' '/start_on_boot/{print $2}' "$config_file" | tr -d '"')
+    stop_mins=$(awk -F ' *= *' '/stop_mins/{print $2}' "$config_file" | tr -d '"')
+else
+    echo "missing config file"
+fi
+
+start_on_boot=${start_on_boot:-"1"}
+stop_mins=${stop_mins:-"9"}
+
+# ---------------------------------------------------
 # Is this first boot??
 # ---------------------------------------------------
 if [ ! -f /tmp/wifi-check-firstboot ]; then
     date "+%Y-%m-%d %H:%M:%S" > /tmp/wifi-check-firstboot
-    if [ "${statusMap["ap0"]}" == "0" ]; then
+    if [ "${statusMap["ap0"]}" == "0" ] && [ "$start_on_boot" == 1 ]; then
         # Start AP
         /opt/emoncms/modules/network/scripts/startAP.sh
     fi
@@ -95,7 +110,7 @@ fi
 # disable the access point
 # ---------------------------------------------------
 if [ "${statusMap["ap0"]}" == "1" ] && [ "${statusMap["wlan0"]}" == "1" ]; then
-    if [ "${changeTimeMap["wlan0"]}" -gt 9 ] && [ "${changeTimeMap["ap0"]}" -gt 9 ]; then
+    if [ "${changeTimeMap["wlan0"]}" -gt $stop_mins ] && [ "${changeTimeMap["ap0"]}" -gt $stop_mins ]; then
         # Stop AP
         /opt/emoncms/modules/network/scripts/stopAP.sh
     fi
