@@ -48,7 +48,7 @@ crontab -l > mycron
 if grep -Fq "wifi-check" mycron; then
     echo "wifi-check already present in crontab"
 else
-    echo "*/15 * * * * /usr/local/bin/wifi-check >> /var/log/emoncms/wificheck.log 2>&1" >> mycron
+    echo "* * * * * /usr/local/bin/wifi-check >> /var/log/emoncms/wificheck.log 2>&1" >> mycron
     crontab mycron
     rm mycron
 fi

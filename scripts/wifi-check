@@ -1,38 +1,102 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
+echo
 now=$(date)
 echo "$now: network check"
 
-# 1) Check to see if ethernet is UP and get ip address
-if [ -f /sys/class/net/eth0/carrier ]
-then
-    eth0status=$(cat /sys/class/net/eth0/carrier)
-    eth0ip=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
-    echo "- eth0 active ($eth0ip)"
-else
-    eth0status=0
+# Define the array of interfaces
+interfaces=("eth0" "ap0" "wlan0")
+
+# Initialize associative arrays
+declare -A statusMap
+declare -A changeTimeMap
+declare -A ipMap
+
+# Loop through each interface
+for interface in "${interfaces[@]}"; do
+
+    # ---------------------------------------------------
+    # 1 Get current state
+    # ---------------------------------------------------
+    status=0
+    if [ -f /sys/class/net/$interface/carrier ]; then
+        status=$(cat /sys/class/net/$interface/carrier)
+    fi
+    statusMap[$interface]=$status
+
+    # ---------------------------------------------------
+    # 2 Get last state and record current state
+    # ---------------------------------------------------
+    last_state_file="/tmp/${interface}_last_state"
+    last_state=0
+    if [ -f "$last_state_file" ]; then
+        last_state=$(cat "$last_state_file")
+    fi
+    echo $status > "$last_state_file"
+
+    # ---------------------------------------------------
+    # If current state is not last state, record state change time
+    # ---------------------------------------------------
+    change_file="/tmp/${interface}_changed"
+    if [ "$status" != "$last_state" ]; then
+        echo "${interface} status has changed"
+        date "+%Y-%m-%d %H:%M:%S" > "$change_file"
+    fi
+
+    # ---------------------------------------------------
+    # Work out change time
+    # ---------------------------------------------------
+    change_time=0
+    if [ -f "$change_file" ]; then
+        change_time=$((($(date +%s) - $(date -d "$(cat "$change_file")" +%s))/60))
+    else 
+        date "+%Y-%m-%d %H:%M:%S" > "$change_file"
+    fi
+    changeTimeMap[$interface]=$change_time
+
+    # ---------------------------------------------------
+    # Get IP address
+    # ---------------------------------------------------
+    ip=""
+    if [ "$status" == 1 ]; then
+        ip=$(ip addr show $interface | grep -Po 'inet \K[\d.]+')
+    fi
+    ipMap[$interface]=$ip
+
+    # ---------------------------------------------------
+    # Display status and change time
+    # ---------------------------------------------------
+    echo "- $interface status: ${statusMap[$interface]}, change time: ${changeTimeMap[$interface]} mins, ip: ${ipMap[$interface]}"
+done
+
+# Further code can use statusMap, changeTimeMap, and ipMap for each interface
+# For example, to access the status of eth0:
+# echo ${statusMap["eth0"]}
+
+# ---------------------------------------------------
+
+# 4) Check for configured WiFi connections
+client_configurations=$(ls /etc/NetworkManager/system-connections -1 | grep -v "^hotspot.nmconnection$" | wc -l)
+echo "- $client_configurations client configuration"
+
+# ---------------------------------------------------
+# Is this first boot??
+# ---------------------------------------------------
+if [ ! -f /tmp/wifi-check-firstboot ]; then
+    date "+%Y-%m-%d %H:%M:%S" > /tmp/wifi-check-firstboot
+    if [ "${statusMap["ap0"]}" == "0" ]; then
+        # Start AP
+        /opt/emoncms/modules/network/scripts/startAP.sh
+    fi
 fi
 
-# 2) Check to see if access point is UP and get ip address
-if [ -f /sys/class/net/ap0/carrier ]
-then
-    ap0status=$(cat /sys/class/net/ap0/carrier)
-    ap0ip=$(ip addr show ap0 | grep -Po 'inet \K[\d.]+')
-    echo "- ap0 active ($ap0ip)"
-else
-    ap0status=0
+# ---------------------------------------------------
+# If wlan0 has been up for 10 mins and ap0 is up
+# disable the access point
+# ---------------------------------------------------
+if [ "${statusMap["ap0"]}" == "1" ] && [ "${statusMap["wlan0"]}" == "1" ]; then
+    if [ "${changeTimeMap["wlan0"]}" -gt 9 ] && [ "${changeTimeMap["ap0"]}" -gt 9 ]; then
+        # Stop AP
+        /opt/emoncms/modules/network/scripts/stopAP.sh
+    fi
 fi
-
-# 3) Check to see if wlan0 is UP and get ip address
-if [ -f /sys/class/net/wlan0/carrier ]
-then
-    wlan0status=$(cat /sys/class/net/wlan0/carrier)
-    wlan0ip=$(ip addr show wlan0 | grep -Po 'inet \K[\d.]+')
-    echo "- wlan0 active ($wlan0ip)"
-else
-    wlan0status=0
-fi
-
-echo "eth0status=$eth0status"
-echo "ap0status=$ap0status"
-echo "wlan0status=$wlan0status"
