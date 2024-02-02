@@ -113,5 +113,6 @@ if [ "${statusMap["ap0"]}" == "1" ]; then
     if [ "${changeTimeMap["ap0"]}" -gt $stop_mins ]; then
         # Stop AP
         /opt/emoncms/modules/network/scripts/stopAP.sh
+        echo 0 > "/tmp/ap0_last_state"
     fi
 fi
