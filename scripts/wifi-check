@@ -109,8 +109,8 @@ fi
 # If wlan0 has been up for 10 mins and ap0 is up
 # disable the access point
 # ---------------------------------------------------
-if [ "${statusMap["ap0"]}" == "1" ] && [ "${statusMap["wlan0"]}" == "1" ]; then
-    if [ "${changeTimeMap["wlan0"]}" -gt $stop_mins ] && [ "${changeTimeMap["ap0"]}" -gt $stop_mins ]; then
+if [ "${statusMap["ap0"]}" == "1" ]; then
+    if [ "${changeTimeMap["ap0"]}" -gt $stop_mins ]; then
         # Stop AP
         /opt/emoncms/modules/network/scripts/stopAP.sh
     fi
