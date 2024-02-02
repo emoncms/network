@@ -29,16 +29,6 @@ fi
 
 sleep 1
 
-# dnsmasq captive portal settings
-filename='/etc/NetworkManager/dnsmasq.d/redirect.conf'
-cat > $filename <<-EOF
-address=/connectivitycheck.gstatic.com/192.168.42.1
-address=/clients3.google.com/192.168.42.1
-address=/captive.apple.com/192.168.42.1
-address=/apple.com/192.168.42.1
-address=/www.msftncsi.com/192.168.42.1
-EOF
-
 # sudo nmcli dev wifi hotspot ifname ap0 ssid emonPi password emonpi2016
 nmcli con delete hotspot
 
