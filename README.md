@@ -19,24 +19,6 @@ Run install script
     cd /opt/emoncms/modules/network
     ./install.sh
 
-For best results update emonpi and emoncms/setup modules:
-
-    cd /opt/openenergymonitor/emonpi
-    git pull origin
-    git fetch origin
-    git checkout nmcli
-
-    cd /var/www/emoncms/Modules/setup
-    git pull origin
-    git fetch origin
-    git checkout wifi3
-
-Update wifi-check entry in sudo crontab -e:
-
-    sudo crontab -e
-    * * * * * /usr/local/bin/wifi-check >> /var/log/emoncms/wificheck.log 2>&1
-
-
 ## Licence
 
 GNU AFFERO GENERAL PUBLIC LICENSE, see emoncms repo:<br>
