@@ -44,6 +44,7 @@ nmcli con modify hotspot ipv4.addresses 192.168.42.1/24
 
 # sudo nmcli con modify hotspot ipv4.gateway 192.168.42.1
 # sudo nmcli con modify hotspot ipv4.dns 8.8.8.8
+nmcli con modify hotspot ipv4.dns-options "edns0 trust-ad"
 nmcli con modify hotspot 802-11-wireless.mode ap 802-11-wireless.band bg ipv4.method shared
 
 # Step 3: Start the connection
