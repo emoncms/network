@@ -41,14 +41,30 @@ function network_controller()
     // Read level access
     // ------------------------------------------------------------       
     if ($session["read"] || $setup_access) {
+     
         if ($route->action=="status") {
-            return $network->status();
+            $route->format = "json";
+            $status = $redis->get("network:status");
+            if (!$status) {
+                shell_exec('php /opt/emoncms/modules/network/scripts/cli.php status > /dev/null 2>&1 &');
+                return "loading";
+            }
+            return json_decode($status);
+            // return $network->status();
+            
+        } elseif ($route->action=="scan") {
+            $route->format = "json";
+            $scan = $redis->get("network:scan");
+            if (!$scan) {
+                shell_exec('php /opt/emoncms/modules/network/scripts/cli.php scan > /dev/null 2>&1 &');
+                return "loading";
+            }
+            return json_decode($scan);
+            // return $network->scan();
+            
         } elseif ($route->action=="log") {
             $route->format = "text";
             return $network->log();
-        } elseif ($route->action=="scan") {
-            $route->format = "json";
-            return $network->scan();
         }
     }
     

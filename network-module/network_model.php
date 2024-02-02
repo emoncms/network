@@ -27,7 +27,7 @@ class Network
     }
 
     public function scan()
-    {
+    {   
         exec("sudo /opt/emoncms/modules/network/scripts/wifi_rescan.sh",$result);
         sleep(1);
         
@@ -51,6 +51,8 @@ class Network
         }
         return $networks;
     }
+
+
 
 
     public function status()
@@ -153,23 +155,22 @@ class Network
         // Run via wrapper: 
         // nmcli dev wifi connect "$ssid" password "$password" ifname wlan0
 
-        exec("sudo /opt/emoncms/modules/network/scripts/wifi_connect.sh",$result);        
+        // exec("sudo /opt/emoncms/modules/network/scripts/wifi_connect.sh",$result);        
         // Remove ANSI escape sequences and carriage returns
-        $result = preg_replace('/[\x00-\x1F\x7F\x1B\[2K\r]/', '', $result[0]);
-        return $result;
+        // $result = preg_replace('/[\x00-\x1F\x7F\x1B\[2K\r]/', '', $result[0]);
+        // return $result;
+
+        shell_exec('sudo /opt/emoncms/modules/network/scripts/wifi_connect.sh > /dev/null 2>&1 &');
+        return true;
     }
     
     public function startAP() {
-        ob_start();
-        passthru("sudo /opt/emoncms/modules/network/scripts/startAP.sh");
-        $result = ob_get_clean();
-        return $result;
+        shell_exec('sudo /opt/emoncms/modules/network/scripts/startAP.sh > /dev/null 2>&1 &');
+        return true;
     }
     
     public function stopAP() {
-        ob_start();
-        passthru("sudo /opt/emoncms/modules/network/scripts/stopAP.sh");
-        $result = ob_get_clean();
-        return $result;      
+        shell_exec('sudo /opt/emoncms/modules/network/scripts/stopAP.sh > /dev/null 2>&1 &');
+        return true;
     }
 }

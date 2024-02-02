@@ -143,9 +143,9 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
             <div v-if="setup_stage==1">
                 <p style="font-size:18px"><b>Network Configuration:</b> Would you like to:</p>
+                <div class="setupbox" @click="setup('client')">Connect to WiFi network</div>
                 <div class="setupbox" @click="setup('ethernet')" v-if="eth0.ip!='---'">Continue on Ethernet</div>
                 <div class="setupbox" @click="setup('standalone')" v-if="ap0.state_description=='Connected'">Continue in stand-alone WiFi Access Point mode</div>
-                <div class="setupbox" @click="setup('client')">Connect to WiFi network</div>
             </div>
         </div>
 
@@ -207,6 +207,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
         </div>
 
+        <!--
         <div class="network-box" v-if="show_log_button && (mode=='network' || setup_stage==2)">
             <div style="margin-bottom:10px">
                 <button class="btn" v-if="!show_log" @click="show_log=true">Show network log</button>
@@ -214,6 +215,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             </div>
             <pre v-if="show_log" class="log">{{ log }}</pre>
         </div>
+        -->
 
     </div>
 </div>
@@ -338,13 +340,18 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             }
         });
     }
-
+    
     function scan() {
         $.ajax({
             url: path + "network/scan",
             dataType: "json",
             success: function(result) {
-
+                if (result=="loading") {
+                    setTimeout(scan,2500);
+                    return false;
+                }
+                if (!result) return false;
+                
                 for (var z in result) {
 
                     var signal = 0;
@@ -364,12 +371,17 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             }
         });
     }
-
+    
     function update_status() {
         $.ajax({
             url: path + "network/status",
             dataType: "json",
             success: function(result) {
+                if (result=="loading") {
+                    setTimeout(update_status,500);
+                    return false;
+                }
+                if (!result) return false;
                 
                 var interfaces = ["eth0","wlan0","ap0"];
                 for (var z in interfaces) {
@@ -416,6 +428,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         update_status();
     }, 5000);
 
+    /*
     function update_log() {
         $.ajax({
             url: path + "network/log",
@@ -428,5 +441,5 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     update_log();
     setInterval(function() {
         update_log();
-    }, 5000);
+    }, 5000);*/
 </script>
