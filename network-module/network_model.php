@@ -53,6 +53,29 @@ class Network
     }
 
 
+    public function status2() {
+        $status = array();
+        foreach (array("eth0","wlan0","ap0") as $interface) {
+    
+            if (file_exists("/sys/class/net/$interface/carrier")) {
+                $state = (int) file_get_contents("/sys/class/net/$interface/carrier");
+                
+                
+                ob_start();
+                passthru("ip addr show $interface | grep -Po 'inet \K[\d.]+'");
+                $ip = ob_get_clean();   
+                
+                $status[$interface] = array(
+                    "state_code" => $state,
+                    "state_description" => $state?"Connected":"Disconnected",
+                    "connection" => "",
+                    "ip" => $ip,
+                    "ssid" => "TEST"
+                );
+            }
+        }
+        return $status;
+    }
 
 
     public function status()

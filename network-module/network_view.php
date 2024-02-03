@@ -17,8 +17,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 <script src="<?php echo $path; ?>Lib/vue.min.js"></script>
 <style>
     .welcome {
-        margin-top: 40px;
-        font-size: 32px;
+        margin-top: 20px;
+        font-size: 24px;
         line-height: 52px;
         color: #fff;
     }
@@ -26,9 +26,9 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     .welcome2 {
         font-weight: bold;
         font-size: 52px;
-        line-height: 52px;
         color: #fff;
-        padding-bottom: 10px;
+        margin-top:10px;
+        margin-bottom:20px;
     }
 
     .setupbox {
@@ -51,7 +51,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     .client-progress {
         padding-top: 50px;
         padding-bottom: 20px;
-        height: 100px;
+        min-height: 100px;
         text-align: center;
         background-color: rgba(255, 255, 255, 0.1);
         border: 1px #fff solid;
@@ -87,6 +87,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         padding: 10px;
         border: 1px #fff solid;
         background-color: rgba(255, 255, 255, 0.1);
+        margin-bottom:10px;
     }
 
     .network-box {
@@ -109,12 +110,10 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     }
 
     .ip-link {
-        font-size: 22px;
         color: #D1E8F1;
     }
 
     .ip-link:hover {
-        font-size: 22px;
         color: #fff;
     }
 
@@ -124,11 +123,17 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         margin-top: 10px;
         margin-bottom: 10px;
         font-weight: bold;
+        display:inline-block;
+        width:100px;
     }
     .iface-status {
         font-weight: normal;
         font-size: 16px;
     }
+    
+    
+    .content-container { max-width:800px; }
+    
 
     
 </style>
@@ -138,50 +143,42 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         <div v-if="mode=='setup'">
             <div class="welcome">Welcome to your</div>
             <div class="welcome2"><span style="color:#c8e9f6">emon</span><span>Pi</span></div>
-            <p style="font-size:18px">This is a quick setup wizard to get you started.</p>
-            <div style="clear:both; height:20px"></div>
 
-            <div v-if="setup_stage==1">
-                <p style="font-size:18px"><b>Network Configuration:</b> Would you like to:</p>
-                <div class="setupbox" @click="setup('client')">Connect to WiFi network</div>
-                <div class="setupbox" @click="setup('ethernet')" v-if="eth0.ip!='---'">Continue on Ethernet</div>
-                <div class="setupbox" @click="setup('standalone')" v-if="ap0.state_description=='Connected'">Continue in stand-alone WiFi Access Point mode</div>
-            </div>
+            <div style="clear:both; height:20px"></div>
         </div>
 
         <h3 v-if="mode=='network'">Network</h3>
-    
-        <div class="row-fluid" style="margin-bottom:20px" v-if="mode=='network'">
-            <div class="span4 box-border" style="height:120px">
-            <div class="iface-heading">Ethernet <span class="iface-status">({{ eth0.state_description }})</span></div>
-                <p><b>IP Address:</b> {{ eth0.ip }}</p>
-            </div>
-            <div class="span4 box-border">
-                <div class="btn-group" style="float:right">
-                    <button class="btn" @click="startAP" v-if="ap0.state_description!='Connected'">Enable</button>
-                    <button class="btn" @click="stopAP" v-if="ap0.state_description=='Connected'">Disable</button>
+        <p style="font-size:18px">Network Connections:</p>
 
-                </div>
-                <div class="iface-heading">WiFi Hotspot <span class="iface-status">({{ ap0.state_description }})</span></div>
-                <p><b>SSID:</b> {{ ap0.ssid }}</p>
-                <p><b>IP Address:</b> {{ ap0.ip }}</p>
-
-            </div>
-
-            <div class="span4 box-border">
-                <div class="iface-heading">WiFi Client <span class="iface-status">({{ wlan0.state_description }})</span></div>
-                <p><b>SSID:</b> {{ wlan0.ssid }}</p>
-                <p><b>IP Address:</b> {{ wlan0.ip }}</p>
-            </div>
+        <div class="box-border">
+          <span class="iface-heading">Ethernet:</span> 
+          <span class="iface-status" v-if="eth0.ip!='---'">(<a :href="'http://'+eth0.ip" class="ip-link" target="_blank">{{ eth0.ip }}</a>)</span>
+          <span class="iface-status" v-if="eth0.ip=='---'">Disconnected</span>
         </div>
 
-        <div class="network-box" v-if="mode=='network' || setup_stage==2">
+        <div class="box-border">
+          <span class="iface-heading">WiFi:</span>
+          <span class="iface-status" v-if="wlan0.ip!='---'">{{ wlan0.ssid }} (<a :href="'http://'+wlan0.ip" class="ip-link" target="_blank">{{ wlan0.ip }}</a>)</span>
+          <span class="iface-status" v-if="wlan0.ip=='---'">Disconnected</span>      
+        </div>
+        
+        <div class="box-border" v-if="mode=='network'">
+            <div class="btn-group" style="float:right">
+                <button class="btn" style="margin-top:5px" @click="startAP" v-if="ap0.state_description!='Connected'">Enable</button>
+                <button class="btn" style="margin-top:5px" @click="stopAP" v-if="ap0.state_description=='Connected'">Disable</button>
+            </div>
+            <span class="iface-heading">Hotspot:</span> 
+            <span class="iface-status" v-if="ap0.ip!='---'">{{ ap0.ssid }} (<a :href="'http://'+ap0.ip" class="ip-link" target="_blank">{{ ap0.ip }}</a>)</span>
+            <span class="iface-status" v-if="ap0.ip=='---'">Disconnected</span>      
+        </div>
+
+        <div class="network-box" v-if="setup_stage==2" style="margin-top:20px">
             <button class="btn" style="float:right; margin-top:-5px" @click="scan_for_networks" v-if="wifi_client_mode=='list'">Scan</button>
             <div class="client-progress" v-if="wifi_client_mode=='scan'">Scanning for WiFi networks, this may take a few seconds..<br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite></div>
 
             <div v-if="wifi_client_mode=='list'">
 
-                <h4>Available WiFi networks</h4>
+                <p style="font-size:18px">Available WiFi networks:</p>
                 <div class="wifi-client-list" v-for="network in available_networks" @click="configure_client(network.SSID)"><img class="iconwifi" :src="'<?php echo $path; ?>Modules/network/icons/light/'+network.icon+'.png'" :title="network.SIGNAL+'%'">{{ network.SSID }}</div>
             </div>
 
@@ -197,11 +194,12 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
             <div v-if="wifi_client_mode=='connect'" class="client-progress">
                 Connecting to <b>{{ selected_SSID }}</b><br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite>
+                <div v-if="status_error" style="margin-top:10px" v-html="status_error"></div>
             </div>
 
             <div v-if="wifi_client_mode=='connected'" class="client-progress">
                 <p>Connected to <b>{{ wlan0.ssid }}</b></p>
-                <p><a :href="'http://'+wlan0.ip" class="ip-link">{{ wlan0.ip }}</a></p>
+                <p><a :href="'http://'+wlan0.ip" class="ip-link" style="font-size:22px">{{ wlan0.ip }}</a></p>
                 <p @click="scan_for_networks" class="rescan">Connect to a different network</p>
             </div>
 
@@ -216,6 +214,16 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             <pre v-if="show_log" class="log">{{ log }}</pre>
         </div>
         -->
+        
+        <div v-if="setup_stage==1" style="margin-top:20px">
+            <!--<p style="font-size:18px" v-if="write"><b>Network Configuration:</b> Would you like to:</p>-->
+            <div class="setupbox" @click="setup('client')" v-if="write">
+              <span v-if="wlan0.ssid==''">Connect to WiFi network</span>
+              <span v-if="wlan0.ssid!=''">Change WiFi network</span>
+            </div>
+            <div class="setupbox" @click="setup('ethernet')" v-if="mode=='setup' && eth0.ip!='---' && write">Continue on Ethernet</div>
+            <div class="setupbox" @click="continue_to_emoncms" v-if="mode=='setup' && ap0.state_description=='Connected'">Continue to Emoncms login</div>
+        </div>
 
     </div>
 </div>
@@ -225,15 +233,19 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     $("body").css("background-color", "#1d8dbc");
     
     var mode = "<?php echo $mode; ?>";
+    var write = <?php echo $write?"true":"false"; ?>;
     
     // On first run call WiFi client scan after first status request
     // and restart wlan0 if inactive
     var first_run = true;
+    
+    var status_timeout_count = 0;
 
     var app = new Vue({
         el: '#network-app',
         data: {
             mode: mode,
+            write: write,
             setup_stage: 1,
             eth0: {
                 ip: "---"
@@ -261,7 +273,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
             
             log: "",
             show_log: false,
-            show_log_button: true
+            show_log_button: true,
+            status_error: ""
 
         },
         methods: {
@@ -288,7 +301,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 });
             },
             setup: function(setup_mode) {
-                if (setup_mode=="ethernet" || setup_mode=="standalone") {
+                if (setup_mode=="ethernet") {
                     setup_set_status(setup_mode,true);
                 } else {
                     if (setup_mode=="client") {
@@ -296,6 +309,9 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                         app.show_log_button = false;
                     }
                 }
+            },
+            continue_to_emoncms: function () {
+                window.location = path+"user/login";
             },
             scan_for_networks: function() {
                 this.wifi_client_mode = 'scan';
@@ -317,14 +333,18 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     data: "ssid="+encodeURIComponent(this.selected_SSID)+"&psk="+encodeURIComponent(this.selected_password),
                     dataType: 'text',
                     async: true,
+                    timeout: 5000,
                     success: function(result) {
+                        
+                    },
+                    error: function() {
                     
                     }
                 });
             },
 
             show_log: function() {
-                update_log();
+                // update_log();
             }
         }
     });
@@ -333,6 +353,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         $.ajax({
             url: path + "setup/set_status?mode="+setup_mode,
             dataType: "text",
+            timeout: 500,
             success: function(result) {
                 if (redirect) {
                     window.location = path+"user/login";
@@ -345,6 +366,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         $.ajax({
             url: path + "network/scan",
             dataType: "json",
+            timeout: 5000,
             success: function(result) {
                 if (result=="loading") {
                     setTimeout(scan,2500);
@@ -368,6 +390,9 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 
                 app.available_networks = result;
                 app.wifi_client_mode = 'list'
+            },
+            error: function() {
+                alert("scan timeout")
             }
         });
     }
@@ -376,7 +401,10 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
         $.ajax({
             url: path + "network/status",
             dataType: "json",
+            timeout:4000,
             success: function(result) {
+                status_timeout_count = 0;
+                
                 if (result=="loading") {
                     setTimeout(update_status,500);
                     return false;
@@ -408,7 +436,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     }
                 }
 
-                if (app.wifi_client_mode == "connect" && app.wlan0.ip) {
+                if (app.wifi_client_mode == "connect" && app.wlan0.ip && app.wlan0.ip != "---") {
                     app.wifi_client_mode = 'connected';
                 }
                 
@@ -417,6 +445,10 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     first_run = false;
                     scan();
                 }
+            },
+            error: function () {
+                status_timeout_count++;
+                app.status_error = "Reconnect to access point to see IP address"
             }
         });
     }

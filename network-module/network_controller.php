@@ -27,20 +27,17 @@ function network_controller()
         $setup_access = true;
     }
 
-    // ------------------------------------------------------------
-    // Write level access
-    // ------------------------------------------------------------
     if ($session["write"] || $setup_access) {
         if ($route->action=="") {
             $route->format = "html";
-            return view("Modules/network/network_view.php",array("mode"=>"network")); 
+            return view("Modules/network/network_view.php",array("mode"=>"network", "write"=>true)); 
         }
     }
 
     // ------------------------------------------------------------
     // Read level access
     // ------------------------------------------------------------       
-    if ($session["read"] || $setup_access) {
+    if ($session["read"] || $setup_access || $route->is_ap) {
      
         if ($route->action=="status") {
             $route->format = "json";
@@ -68,6 +65,9 @@ function network_controller()
         }
     }
     
+    // ------------------------------------------------------------
+    // Write level access
+    // ------------------------------------------------------------
     if ($session["write"] || $setup_access) {
 
         if ($route->action=="connect-wlan0") {

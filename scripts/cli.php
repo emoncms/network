@@ -14,7 +14,7 @@ if ($argv[1] == "status") {
     //if (!$status) {
         $status = $network->status();
         $redis->set("network:status",json_encode($status));
-        $redis->expire("network:status",5);
+        $redis->expire("network:status",10);
     //}
     
 } else if ($argv[1] == "scan") {
