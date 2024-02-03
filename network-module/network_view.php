@@ -325,7 +325,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 this.wifi_client_mode = 'connect';
                 this.show_log_button = true;
                 
-                if (app.mode=="setup") setup_set_status("client",false);
+                setup_set_status("client",false);
 
                 $.ajax({
                     type: 'POST',
