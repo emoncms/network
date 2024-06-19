@@ -3,9 +3,27 @@
 # Prompt the user for the SSID
 read -p "Enter the SSID: " ssid
 
+# Exit if the SSID is empty
+if [ -z "$ssid" ]; then
+  echo "SSID cannot be empty"
+  exit 1
+fi
+
+# Exit if the SSID is called hotspot
+if [ "$ssid" == "hotspot" ]; then
+  echo "SSID cannot be called hotspot"
+  exit 1
+fi
+
 # Prompt the user for the PSK (password)
 read -sp "Enter the PSK: " psk
 echo  # To move to a new line after the password input
+
+# Exit if the PSK is empty
+if [ -z "$psk" ]; then
+  echo "PSK cannot be empty"
+  exit 1
+fi
 
 wifi_interface="wlan0"  # Replace this with your WiFi interface name if different
 
