@@ -1,14 +1,12 @@
 #!/bin/bash
 
-# Check if both SSID and PSK are provided
-if [ "$#" -ne 2 ]; then
-  echo "Usage: $0 <SSID> <PSK>"
-  exit 1
-fi
+# Prompt the user for the SSID
+read -p "Enter the SSID: " ssid
 
-# Assign command line arguments to variables
-ssid=$1
-psk=$2
+# Prompt the user for the PSK (password)
+read -sp "Enter the PSK: " psk
+echo  # To move to a new line after the password input
+
 wifi_interface="wlan0"  # Replace this with your WiFi interface name if different
 
 echo "Creating connection $ssid"
