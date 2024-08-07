@@ -161,7 +161,7 @@ class Network
 
     public function connect_wlan0($ssid, $psk)
     {
-        if (!preg_match('/^[a-zA-Z0-9_-]{1,32}$/', $ssid)) {
+        if (!preg_match('/^[a-zA-Z0-9_\s-]{1,32}$/', $ssid)) {
             return "Invalid SSID";
         }
     

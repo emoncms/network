@@ -17,10 +17,10 @@ rm /tmp/wifi-config.ini
 
 # Validate the SSID to ensure it contains only valid characters (letters, numbers, underscore, hyphen)
 # and is not longer than 32 characters
-if [[ ! "$ssid" =~ ^[a-zA-Z0-9_-]{1,32}$ ]]; then
-    echo "Invalid SSID" >&2
-    exit 1
-fi
+# if [[ ! "$ssid" =~ ^[a-zA-Z0-9_-]{1,32}$ ]]; then
+#     echo "Invalid SSID" >&2
+#     exit 1
+# fi
 
 # Validate the password to ensure it is a valid hexadecimal string
 # This is a simple check assuming password is a hash
