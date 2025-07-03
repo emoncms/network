@@ -2,6 +2,7 @@
 
 class Network
 {
+    private $log = null;
     private $moduledir = "";
 
     public function __construct()
