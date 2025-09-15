@@ -6,26 +6,25 @@ if [ ! -f /tmp/wifi-config.ini ]; then
     exit 1
 fi
 
-# Extract the SSID from the wifi-config.ini file
-ssid=$(awk -F "=" '/ssid/ {print $2}' /tmp/wifi-config.ini)
+# Extract the SSID from the wifi-config.ini file (handle escaped characters)
+ssid=$(awk -F "=" '/^ssid=/ {gsub(/^ssid=/, ""); print}' /tmp/wifi-config.ini)
 
 # Extract the password from the wifi-config.ini file
-password=$(awk -F "=" '/password/ {print $2}' /tmp/wifi-config.ini)
+password=$(awk -F "=" '/^password=/ {gsub(/^password=/, ""); print}' /tmp/wifi-config.ini)
 
 # Remove the wifi-config.ini file after reading from it for security
 rm /tmp/wifi-config.ini
 
-# Validate the SSID to ensure it contains only valid characters (letters, numbers, underscore, hyphen)
-# and is not longer than 32 characters
-# if [[ ! "$ssid" =~ ^[a-zA-Z0-9_-]{1,32}$ ]]; then
-#     echo "Invalid SSID" >&2
-#     exit 1
-# fi
+# Validate the SSID - should not be empty and should be reasonable length
+if [[ -z "$ssid" || ${#ssid} -gt 32 ]]; then
+    echo "Invalid SSID: empty or too long" >&2
+    exit 1
+fi
 
-# Validate the password to ensure it is a valid hexadecimal string
-# This is a simple check assuming password is a hash
-if [[ ! $password =~ ^[a-fA-F0-9]+$ ]]; then
-    echo "Invalid password hash" >&2
+# Validate the password to ensure it is a valid 64-character hexadecimal string (PBKDF2 hash)
+# This ensures the hash was properly generated and prevents injection attacks
+if [[ ! $password =~ ^[a-fA-F0-9]{64}$ ]]; then
+    echo "Invalid password hash: must be 64 hex characters" >&2
     exit 1
 fi
 

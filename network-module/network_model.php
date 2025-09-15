@@ -166,9 +166,22 @@ class Network
             return "Invalid SSID";
         }
     
-        $psk = hash_pbkdf2("sha1", $psk, $ssid, 4096, 64);
+        // Validate PSK: WiFi passwords must be 8-63 characters long
+        // Allow all printable ASCII characters including special characters
+        if (strlen($psk) < 8 || strlen($psk) > 63) {
+            return "Invalid PSK: must be 8-63 characters long";
+        }
+        
+        // Check for invalid characters (non-printable ASCII)
+        if (!mb_check_encoding($psk, 'UTF-8') || !ctype_print($psk)) {
+            return "Invalid PSK: contains invalid characters";
+        }
+    
+        // Hash the PSK using PBKDF2 as per WPA2 standard
+        $psk_hash = hash_pbkdf2("sha1", $psk, $ssid, 4096, 64);
 
-        $config = "[WiFi]\nssid=$ssid\npassword=$psk";
+        // Properly escape values for INI file format
+        $config = "[WiFi]\nssid=" . addcslashes($ssid, "\n\r\\\"") . "\npassword=" . $psk_hash;
 
         if (!$file = fopen('/tmp/wifi-config.ini', 'w')) {
             $this->log->error("Could not write to /tmp/wifi-config.ini");
