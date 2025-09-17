@@ -162,20 +162,20 @@ class Network
 
     public function connect_wlan0($ssid, $psk)
     {
-        if (!preg_match('/^[a-zA-Z0-9_\s-]{1,32}$/', $ssid)) {
-            return "Invalid SSID";
+        // convert base64 to string
+        $ssid = base64_decode($ssid);
+        $psk = base64_decode($psk);
+
+        // Validate SSID: must be 0-32 octets long
+        // The standard allows any octet values and zero length
+        $ssid_length = strlen($ssid);
+        if ($ssid_length < 1 || $ssid_length > 32) {
+            return "Invalid SSID: must be 0 to 32 characters long";
         }
-    
-        // Validate PSK: WiFi passwords must be 8-63 characters long
-        // Allow all printable ASCII characters including special characters
-        if (strlen($psk) < 8 || strlen($psk) > 63) {
-            return "Invalid PSK: must be 8-63 characters long";
-        }
-        
-        // Check for invalid characters (non-printable ASCII)
-        // Accept all printable ASCII characters (codes 32-126)
-        if (!mb_check_encoding($psk, 'UTF-8') || !preg_match('/^[\x20-\x7E]{8,63}$/', $psk)) {
-            return "Invalid PSK: contains invalid characters";
+
+        // Validate PSK: WiFi passwords must be 8-63 printable ASCII characters (0x20-0x7E)
+        if (!preg_match('/^[\x20-\x7E]{8,63}$/', $psk)) {
+            return "Invalid PSK: must be 8 to 63 printable ASCII characters";
         }
     
         // Hash the PSK using PBKDF2 as per WPA2 standard

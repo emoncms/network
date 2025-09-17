@@ -330,7 +330,7 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 $.ajax({
                     type: 'POST',
                     url: "network/connect-wlan0.json",
-                    data: "ssid="+encodeURIComponent(this.selected_SSID)+"&psk="+encodeURIComponent(this.selected_password),
+                    data: "ssid="+btoa(this.selected_SSID)+"&psk="+btoa(this.selected_password),
                     dataType: 'text',
                     async: true,
                     timeout: 5000,
