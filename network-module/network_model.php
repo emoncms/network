@@ -173,7 +173,8 @@ class Network
         }
         
         // Check for invalid characters (non-printable ASCII)
-        if (!mb_check_encoding($psk, 'UTF-8') || !ctype_print($psk)) {
+        // Accept all printable ASCII characters (codes 32-126)
+        if (!mb_check_encoding($psk, 'UTF-8') || !preg_match('/^[\x20-\x7E]{8,63}$/', $psk)) {
             return "Invalid PSK: contains invalid characters";
         }
     
