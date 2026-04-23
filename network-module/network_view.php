@@ -325,8 +325,6 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                 this.wifi_client_mode = 'connect';
                 this.show_log_button = true;
                 
-                setup_set_status("client",false);
-
                 $.ajax({
                     type: 'POST',
                     url: "network/connect-wlan0.json",
@@ -335,7 +333,9 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     async: true,
                     timeout: 5000,
                     success: function(result) {
-                        
+                        setTimeout(function() {
+                            setup_set_status("client",false);
+                        }, 1000);
                     },
                     error: function() {
                     
