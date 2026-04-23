@@ -14,16 +14,18 @@ defined('EMONCMS_EXEC') or die('Restricted access');
 
 function network_controller()
 {
-    global $settings, $session, $route, $redis;
+    global $settings, $session, $route, $redis, $mysqli;
 
     $route->format = "json";
 
     require "Modules/network/network_model.php";
     $network = new Network();
 
-    // Special setup access to WIFI function scan and setconfig
+    require_once "Modules/setup/setup_model.php";
+    $setup = new Setup($mysqli);
+
     $setup_access = false;
-    if (isset($_SESSION['setup_access']) && $_SESSION['setup_access']) {
+    if ($setup->status()=="unconfigured") {
         $setup_access = true;
     }
 
