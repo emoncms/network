@@ -50,6 +50,8 @@ address=/connectivitycheck.gstatic.com/192.168.42.1
 address=/clients3.google.com/192.168.42.1
 address=/captive.apple.com/192.168.42.1
 address=/apple.com/192.168.42.1
+address=/appleiphonecell.com/192.168.42.1
+address=/itools.info/192.168.42.1
 address=/www.msftncsi.com/192.168.42.1
 EOF
 
