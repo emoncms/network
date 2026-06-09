@@ -12,9 +12,10 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     }
     asort($countries);
 }
+
+load_js("Lib/js/vue.global.prod-3.5.22.min.js");
 ?>
 
-<script src="<?php echo $path; ?>Lib/vue.min.js"></script>
 <style>
     .welcome {
         margin-top: 20px;
@@ -241,41 +242,41 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
     
     var status_timeout_count = 0;
 
-    var app = new Vue({
-        el: '#network-app',
-        data: {
-            mode: mode,
-            write: write,
-            setup_stage: 1,
-            eth0: {
-                ip: "---"
-            },
-            wlan0: {
-                ssid: "",
-                ip: "---",
-                state_description: ""
-            },
-            ap0: {
-                ssid: "emonPi",
-                ip: "---",
-                state_description: ""
-            },
+    var app = Vue.createApp({
+        data: function () {
+            return {
+                mode: mode,
+                write: write,
+                setup_stage: 1,
+                eth0: {
+                    ip: "---"
+                },
+                wlan0: {
+                    ssid: "",
+                    ip: "---",
+                    state_description: ""
+                },
+                ap0: {
+                    ssid: "emonPi",
+                    ip: "---",
+                    state_description: ""
+                },
 
-            wifi_client_mode: 'scan',
-            available_networks: [],
-            show_password: true,
+                wifi_client_mode: 'scan',
+                available_networks: [],
+                show_password: true,
 
-            selected_SSID: "",
-            selected_password: "",
-            selected_country: "GB",
+                selected_SSID: "",
+                selected_password: "",
+                selected_country: "GB",
 
-            countries: <?php echo json_encode($countries); ?>,
-            
-            log: "",
-            show_log: false,
-            show_log_button: true,
-            status_error: ""
-
+                countries: <?php echo json_encode($countries); ?>,
+                
+                log: "",
+                show_log: false,
+                show_log_button: true,
+                status_error: ""
+            };
         },
         methods: {
             startAP: function() {
@@ -342,12 +343,8 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
                     }
                 });
             },
-
-            show_log: function() {
-                // update_log();
-            }
         }
-    });
+    }).mount('#network-app');
     
     function setup_set_status(setup_mode,redirect=false) {
         $.ajax({
