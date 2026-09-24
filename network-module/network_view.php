@@ -50,6 +50,7 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
     }
 
     .client-progress {
+        box-sizing: content-box;
         padding-top: 50px;
         padding-bottom: 20px;
         min-height: 100px;
@@ -75,6 +76,7 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
     }
 
     .iconwifi {
+        box-sizing: content-box;
         width: 18px;
         margin-top: -3px;
         padding-right: 10px;
@@ -165,8 +167,8 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
         
         <div class="box-border" v-if="mode=='network'">
             <div class="btn-group" style="float:right">
-                <button class="btn" style="margin-top:5px" @click="startAP" v-if="ap0.state_description!='Connected'">Enable</button>
-                <button class="btn" style="margin-top:5px" @click="stopAP" v-if="ap0.state_description=='Connected'">Disable</button>
+                <button class="btn btn-default" style="margin-top:5px" @click="startAP" v-if="ap0.state_description!='Connected'">Enable</button>
+                <button class="btn btn-default" style="margin-top:5px" @click="stopAP" v-if="ap0.state_description=='Connected'">Disable</button>
             </div>
             <span class="iface-heading">Hotspot:</span> 
             <span class="iface-status" v-if="ap0.ip!='---'">{{ ap0.ssid }} (<a :href="'http://'+ap0.ip" class="ip-link" target="_blank">{{ ap0.ip }}</a>)</span>
@@ -174,7 +176,7 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
         </div>
 
         <div class="network-box" v-if="setup_stage==2" style="margin-top:20px">
-            <button class="btn" style="float:right; margin-top:-5px" @click="scan_for_networks" v-if="wifi_client_mode=='list'">Scan</button>
+            <button class="btn btn-default" style="float:right; margin-top:-5px" @click="scan_for_networks" v-if="wifi_client_mode=='list'">Scan</button>
             <div class="client-progress" v-if="wifi_client_mode=='scan'">Scanning for WiFi networks, this may take a few seconds..<br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite></div>
 
             <div v-if="wifi_client_mode=='list'">
@@ -190,7 +192,7 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
                 <input v-model="selected_password" :type="show_password?'text':'password'" style="height:auto">
                 <div class="auth-showpass"><input type="checkbox" v-model="show_password" style="margin-top:-3px"> Show password</div>
                 
-                <button class="btn" @click="wifi_client_mode='list'">Cancel</button> <button class="btn" @click="connect">Connect</button>
+                <button class="btn btn-default" @click="wifi_client_mode='list'">Cancel</button> <button class="btn btn-default" @click="connect">Connect</button>
             </div>
 
             <div v-if="wifi_client_mode=='connect'" class="client-progress">
@@ -209,8 +211,8 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
         <!--
         <div class="network-box" v-if="show_log_button && (mode=='network' || setup_stage==2)">
             <div style="margin-bottom:10px">
-                <button class="btn" v-if="!show_log" @click="show_log=true">Show network log</button>
-                <button class="btn" v-if="show_log" @click="show_log=false">Hide network log</button>
+                <button class="btn btn-default" v-if="!show_log" @click="show_log=true">Show network log</button>
+                <button class="btn btn-default" v-if="show_log" @click="show_log=false">Hide network log</button>
             </div>
             <pre v-if="show_log" class="log">{{ log }}</pre>
         </div>
