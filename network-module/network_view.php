@@ -189,7 +189,7 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
                 <h4>Authentication required</h4>
                 <p>Passwords or encryption keys are required to access WiFi network: <b>{{ selected_SSID }}</b></p>
                 <p>Password:</p>
-                <input v-model="selected_password" :type="show_password?'text':'password'" style="height:auto">
+                <input class="form-control input-220 mb-2" v-model="selected_password" :type="show_password?'text':'password'">
                 <div class="auth-showpass"><input type="checkbox" v-model="show_password" style="margin-top:-3px"> Show password</div>
                 
                 <button class="btn btn-default" @click="wifi_client_mode='list'">Cancel</button> <button class="btn btn-default" @click="connect">Connect</button>
