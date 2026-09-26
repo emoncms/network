@@ -14,227 +14,124 @@ if (file_exists("/usr/share/zoneinfo/iso3166.tab")) {
 }
 
 load_js("Lib/js/vue.global.prod-3.5.22.min.js");
+load_css("Modules/network/network_view.css");
 ?>
 
-<style>
-    .welcome {
-        margin-top: 20px;
-        font-size: 24px;
-        line-height: 52px;
-        color: #fff;
-    }
+<div class="net-page<?php if ($mode == "setup") echo " net-blue"; ?>" data-bs-theme="dark">
+<div class="net-inner" id="network-app" v-cloak>
 
-    .welcome2 {
-        font-weight: bold;
-        font-size: 52px;
-        color: #fff;
-        margin-top:10px;
-        margin-bottom:20px;
-    }
+    <div class="net-welcome" v-if="mode=='setup'">Welcome to your<b><span>emon</span>Pi</b></div>
+    <div class="net-header" v-else><h2>Network</h2><p class="net-sub">Connections on this device</p></div>
 
-    .setupbox {
-        color: #fff;
-        font-size: 18px;
-        padding: 20px;
-        border: 1px #fff solid;
-        border-bottom: 0;
-        cursor: pointer;
-    }
+    <div class="net-section"><h4>Network connections</h4></div>
 
-    .setupbox:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
+    <div class="net-box"><div class="net-row">
+        <span class="net-icon"><span class="svg-icon-link"></span></span>
+        <span class="net-name">Ethernet</span>
+        <span class="net-status" v-if="eth0.ip!='---'"><a :href="'http://'+eth0.ip" class="net-mono" target="_blank">{{ eth0.ip }}</a></span>
+        <span class="net-status" v-else></span>
+        <span class="net-tag" :class="{'net-tag-ok': eth0.ip!='---'}">{{ eth0.ip!='---' ? 'Connected' : 'Disconnected' }}</span>
+    </div></div>
 
-    .setupbox:last-child {
-        border-bottom: 1px #fff solid;
-    }
+    <div class="net-box"><div class="net-row">
+        <span class="net-icon"><span class="svg-icon-wifi"></span></span>
+        <span class="net-name">WiFi</span>
+        <span class="net-status" v-if="wlan0.ip!='---'"><b>{{ wlan0.ssid }}</b> <a :href="'http://'+wlan0.ip" class="net-mono" target="_blank">{{ wlan0.ip }}</a></span>
+        <span class="net-status" v-else></span>
+        <span class="net-tag" :class="{'net-tag-ok': wlan0.ip!='---'}">{{ wlan0.ip!='---' ? 'Connected' : 'Disconnected' }}</span>
+    </div></div>
 
-    .client-progress {
-        box-sizing: content-box;
-        padding-top: 50px;
-        padding-bottom: 20px;
-        min-height: 100px;
-        text-align: center;
-        background-color: rgba(255, 255, 255, 0.1);
-        border: 1px #fff solid;
-    }
+    <div class="net-box" v-if="mode=='network'"><div class="net-row">
+        <span class="net-icon"><span class="svg-icon-phonelink_setup"></span></span>
+        <span class="net-name">Hotspot</span>
+        <span class="net-status" v-if="ap0.ip!='---'"><b>{{ ap0.ssid }}</b> <a :href="'http://'+ap0.ip" class="net-mono" target="_blank">{{ ap0.ip }}</a></span>
+        <span class="net-status" v-else></span>
+        <span class="net-tag" :class="{'net-tag-ok': ap_on}">{{ ap_on ? 'On' : 'Off' }}</span>
+        <button class="net-btn" @click="stopAP" v-if="ap_on">Turn off</button>
+        <button class="net-btn" @click="startAP" v-else>Turn on</button>
+    </div></div>
 
+    <template v-if="setup_stage==1">
+        <div class="net-section"><h4>{{ mode=='setup' ? 'Next step' : 'WiFi' }}</h4></div>
+        <div class="net-box" v-if="write"><div class="net-row is-link" @click="setup('client')">
+            <span class="net-icon"><span class="svg-icon-wifi"></span></span>
+            <span class="net-choice">{{ wlan0.ssid=='' ? 'Connect to WiFi network' : 'Change WiFi network' }}</span>
+            <span class="svg-icon-arrow_forward net-arrow"></span>
+        </div></div>
+        <div class="net-box" v-if="mode=='setup' && eth0.ip!='---' && write"><div class="net-row is-link" @click="setup('ethernet')">
+            <span class="net-icon"><span class="svg-icon-link"></span></span>
+            <span class="net-choice">Continue on Ethernet</span>
+            <span class="svg-icon-arrow_forward net-arrow"></span>
+        </div></div>
+        <div class="net-box" v-if="mode=='setup' && ap_on"><div class="net-row is-link" @click="continue_to_emoncms">
+            <span class="net-icon"><span class="svg-icon-enter"></span></span>
+            <span class="net-choice">Continue to Emoncms login</span>
+            <span class="svg-icon-arrow_forward net-arrow"></span>
+        </div></div>
+    </template>
 
-    .wifi-client-list {
-        padding: 10px;
-        border: 1px #fff solid;
-        border-bottom: 0;
-        cursor: pointer;
-    }
-
-    .wifi-client-list:last-child {
-        border-bottom: 1px #fff solid;
-    }
-
-    .wifi-client-list:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-
-    .iconwifi {
-        box-sizing: content-box;
-        width: 18px;
-        margin-top: -3px;
-        padding-right: 10px;
-    }
-
-    .auth-showpass {
-        margin-bottom: 10px;
-    }
-
-    .box-border {
-        padding: 10px;
-        border: 1px #fff solid;
-        background-color: rgba(255, 255, 255, 0.1);
-        margin-bottom:10px;
-    }
-
-    .network-box {
-        margin-bottom: 20px;
-    }
-
-    .rescan {
-        font-size: 14px;
-        color: #D1E8F1;
-        cursor: pointer;
-    }
-
-    .rescan:hover {
-        color: #fff;
-    }
-
-    .log {
-        background-color: rgba(255, 255, 255, 0.1);
-        padding: 10px;
-    }
-
-    .ip-link {
-        color: #D1E8F1;
-    }
-
-    .ip-link:hover {
-        color: #fff;
-    }
-
-    .iface-heading {
-        font-size: 18px;
-        color: #fff;
-        margin-top: 10px;
-        margin-bottom: 10px;
-        font-weight: bold;
-        display:inline-block;
-        width:100px;
-    }
-    .iface-status {
-        font-weight: normal;
-        font-size: 16px;
-    }
-    
-    
-    .content-container { max-width:800px; }
-    
-
-    
-</style>
-<div style="color:#fff">
-    <div id="network-app">
-    
-        <div v-if="mode=='setup'">
-            <div class="welcome">Welcome to your</div>
-            <div class="welcome2"><span style="color:#c8e9f6">emon</span><span>Pi</span></div>
-
-            <div style="clear:both; height:20px"></div>
+    <template v-if="setup_stage==2">
+        <div class="net-section">
+            <h4>WiFi networks</h4>
+            <template v-if="wifi_client_mode=='list'">
+                <button class="net-btn" @click="scan_for_networks"><span class="svg-icon-refresh-cw"></span> Scan</button>
+                <button class="net-btn" @click="setup_stage=1">Close</button>
+            </template>
         </div>
 
-        <h3 v-if="mode=='network'">Network</h3>
-        <p style="font-size:18px">Network Connections:</p>
+        <div class="net-box" v-if="wifi_client_mode=='scan'"><div class="net-progress">
+            <div class="spinner-border" role="status"></div>
+            Scanning for WiFi networks, this may take a few seconds
+        </div></div>
 
-        <div class="box-border">
-          <span class="iface-heading">Ethernet:</span> 
-          <span class="iface-status" v-if="eth0.ip!='---'">(<a :href="'http://'+eth0.ip" class="ip-link" target="_blank">{{ eth0.ip }}</a>)</span>
-          <span class="iface-status" v-if="eth0.ip=='---'">Disconnected</span>
-        </div>
-
-        <div class="box-border">
-          <span class="iface-heading">WiFi:</span>
-          <span class="iface-status" v-if="wlan0.ip!='---'">{{ wlan0.ssid }} (<a :href="'http://'+wlan0.ip" class="ip-link" target="_blank">{{ wlan0.ip }}</a>)</span>
-          <span class="iface-status" v-if="wlan0.ip=='---'">Disconnected</span>      
-        </div>
-        
-        <div class="box-border" v-if="mode=='network'">
-            <div class="btn-group" style="float:right">
-                <button class="btn btn-default" style="margin-top:5px" @click="startAP" v-if="ap0.state_description!='Connected'">Enable</button>
-                <button class="btn btn-default" style="margin-top:5px" @click="stopAP" v-if="ap0.state_description=='Connected'">Disable</button>
+        <template v-if="wifi_client_mode=='list'">
+            <div class="net-box" v-for="network in available_networks" :class="{open: selected_SSID==network.SSID}">
+                <div class="net-row is-link" @click="configure_client(network.SSID)">
+                    <span class="wifi-signal" :class="'wifi-signal-'+network.level" :title="network.SIGNAL+'%'"><i></i><i></i><i></i><i></i></span>
+                    <span class="net-ssid">{{ network.SSID }}</span>
+                    <span class="net-tag net-tag-ok" v-if="wlan0.ip!='---' && wlan0.ssid==network.SSID">Connected</span>
+                    <span class="net-tag net-tag-lock" v-if="network.SECURITY!=''">Secured</span>
+                    <span class="net-signal">{{ network.SIGNAL }}%</span>
+                    <span class="net-chevron" :class="selected_SSID==network.SSID ? 'svg-icon-chevron-up' : 'svg-icon-chevron-down'"></span>
+                </div>
+                <div class="net-form" v-if="selected_SSID==network.SSID">
+                    <template v-if="network.SECURITY!=''">
+                        <label>Password</label>
+                        <input class="net-mono net-password" :type="show_password ? 'text' : 'password'" v-model="selected_password" @keyup.enter="connect">
+                        <label><input type="checkbox" v-model="show_password"> Show</label>
+                    </template>
+                    <label v-else>Open network, no password needed</label>
+                    <span class="net-spacer"></span>
+                    <button class="net-btn" @click="selected_SSID=''">Cancel</button>
+                    <button class="net-btn net-btn-primary" @click="connect">Connect</button>
+                </div>
             </div>
-            <span class="iface-heading">Hotspot:</span> 
-            <span class="iface-status" v-if="ap0.ip!='---'">{{ ap0.ssid }} (<a :href="'http://'+ap0.ip" class="ip-link" target="_blank">{{ ap0.ip }}</a>)</span>
-            <span class="iface-status" v-if="ap0.ip=='---'">Disconnected</span>      
-        </div>
+        </template>
 
-        <div class="network-box" v-if="setup_stage==2" style="margin-top:20px">
-            <button class="btn btn-default" style="float:right; margin-top:-5px" @click="scan_for_networks" v-if="wifi_client_mode=='list'">Scan</button>
-            <div class="client-progress" v-if="wifi_client_mode=='scan'">Scanning for WiFi networks, this may take a few seconds..<br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite></div>
+        <div class="net-box" v-if="wifi_client_mode=='connect'"><div class="net-progress">
+            <div class="spinner-border" role="status"></div>
+            <div>Connecting to <b>{{ selected_SSID }}</b></div>
+            <div v-if="status_error">{{ status_error }}</div>
+        </div></div>
 
-            <div v-if="wifi_client_mode=='list'">
+        <div class="net-box" v-if="wifi_client_mode=='failed'"><div class="net-progress">
+            <div>Could not connect to <b>{{ selected_SSID }}</b>. Check the password and try again.</div>
+            <button class="net-btn" @click="wifi_client_mode='list'">Back to networks</button>
+        </div></div>
 
-                <p style="font-size:18px">Available WiFi networks:</p>
-                <div class="wifi-client-list" v-for="network in available_networks" @click="configure_client(network.SSID)"><img class="iconwifi" :src="'<?php echo $path; ?>Modules/network/icons/light/'+network.icon+'.png'" :title="network.SIGNAL+'%'">{{ network.SSID }}</div>
-            </div>
+        <div class="net-box" v-if="wifi_client_mode=='connected'"><div class="net-progress">
+            <div>Connected to <b>{{ wlan0.ssid }}</b></div>
+            <a :href="'http://'+wlan0.ip" class="net-ip net-mono">{{ wlan0.ip }}</a>
+            <div v-if="mode=='setup'">Connect this computer to the same network, then open the address above.</div>
+            <button class="net-btn" @click="scan_for_networks">Connect to a different network</button>
+        </div></div>
+    </template>
 
-            <div class="box-border" v-if="wifi_client_mode=='config'">
-                <h4>Authentication required</h4>
-                <p>Passwords or encryption keys are required to access WiFi network: <b>{{ selected_SSID }}</b></p>
-                <p>Password:</p>
-                <input class="form-control input-220 mb-2" v-model="selected_password" :type="show_password?'text':'password'">
-                <div class="auth-showpass"><input type="checkbox" v-model="show_password" style="margin-top:-3px"> Show password</div>
-                
-                <button class="btn btn-default" @click="wifi_client_mode='list'">Cancel</button> <button class="btn btn-default" @click="connect">Connect</button>
-            </div>
-
-            <div v-if="wifi_client_mode=='connect'" class="client-progress">
-                Connecting to <b>{{ selected_SSID }}</b><br><br><img src="<?php echo $path; ?>Modules/network/icons/ajax-loader.gif" loop=infinite>
-                <div v-if="status_error" style="margin-top:10px" v-html="status_error"></div>
-            </div>
-
-            <div v-if="wifi_client_mode=='connected'" class="client-progress">
-                <p>Connected to <b>{{ wlan0.ssid }}</b></p>
-                <p><a :href="'http://'+wlan0.ip" class="ip-link" style="font-size:22px">{{ wlan0.ip }}</a></p>
-                <p @click="scan_for_networks" class="rescan">Connect to a different network</p>
-            </div>
-
-        </div>
-
-        <!--
-        <div class="network-box" v-if="show_log_button && (mode=='network' || setup_stage==2)">
-            <div style="margin-bottom:10px">
-                <button class="btn btn-default" v-if="!show_log" @click="show_log=true">Show network log</button>
-                <button class="btn btn-default" v-if="show_log" @click="show_log=false">Hide network log</button>
-            </div>
-            <pre v-if="show_log" class="log">{{ log }}</pre>
-        </div>
-        -->
-        
-        <div v-if="setup_stage==1" style="margin-top:20px">
-            <!--<p style="font-size:18px" v-if="write"><b>Network Configuration:</b> Would you like to:</p>-->
-            <div class="setupbox" @click="setup('client')" v-if="write">
-              <span v-if="wlan0.ssid==''">Connect to WiFi network</span>
-              <span v-if="wlan0.ssid!=''">Change WiFi network</span>
-            </div>
-            <div class="setupbox" @click="setup('ethernet')" v-if="mode=='setup' && eth0.ip!='---' && write">Continue on Ethernet</div>
-            <div class="setupbox" @click="continue_to_emoncms" v-if="mode=='setup' && ap0.state_description=='Connected'">Continue to Emoncms login</div>
-        </div>
-
-    </div>
+</div>
 </div>
 
 <script>
 
-    $("body").css("background-color", "#1d8dbc");
-    
     var mode = "<?php echo $mode; ?>";
     var write = <?php echo $write?"true":"false"; ?>;
     
@@ -243,6 +140,10 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
     var first_run = true;
     
     var status_timeout_count = 0;
+
+    // Connect gives up after this long without an IP address (network page only)
+    var connect_timeout = 60000;
+    var connect_timer = false;
 
     var app = Vue.createApp({
         data: function () {
@@ -279,6 +180,11 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
                 show_log_button: true,
                 status_error: ""
             };
+        },
+        computed: {
+            ap_on: function() {
+                return this.ap0.state_description == 'Connected';
+            }
         },
         methods: {
             startAP: function() {
@@ -321,12 +227,28 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
                 scan();
             },
             configure_client: function(SSID) {
-                this.wifi_client_mode = 'config';
-                this.selected_SSID = SSID
+                if (this.selected_SSID == SSID) {
+                    this.selected_SSID = "";
+                    return;
+                }
+                this.selected_SSID = SSID;
+                this.selected_password = "";
+                this.$nextTick(function() {
+                    var input = document.querySelector("#network-app .net-password");
+                    if (input) input.focus();
+                });
             },
             connect: function() {
                 this.wifi_client_mode = 'connect';
                 this.show_log_button = true;
+                this.status_error = "";
+
+                clearTimeout(connect_timer);
+                if (this.mode == "network") {
+                    connect_timer = setTimeout(function() {
+                        if (app.wifi_client_mode == 'connect') app.wifi_client_mode = 'failed';
+                    }, connect_timeout);
+                }
                 
                 $.ajax({
                     type: 'POST',
@@ -381,13 +303,11 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
                     if (result[z]["SIGNAL"] > 60) signal = 3;
                     if (result[z]["SIGNAL"] > 80) signal = 4;
 
-                    var secure = "secure";
-                    if (result[z]["SECURITY"] == "") secure = "";
-
-                    result[z].icon = "wifi" + signal + secure;
+                    result[z].level = signal;
                 }
 
                 app.available_networks = result;
+                app.selected_SSID = "";
                 app.wifi_client_mode = 'list'
             },
             error: function() {
@@ -437,6 +357,7 @@ load_js("Lib/js/vue.global.prod-3.5.22.min.js");
 
                 if (app.wifi_client_mode == "connect" && app.wlan0.ip && app.wlan0.ip != "---") {
                     app.wifi_client_mode = 'connected';
+                    clearTimeout(connect_timer);
                 }
                 
                 // First run
