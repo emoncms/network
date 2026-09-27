@@ -18,31 +18,31 @@ load_css("Modules/network/network_view.css");
 ?>
 
 <div class="net-page<?php if ($mode == "setup") echo " net-blue"; ?>" data-bs-theme="dark">
-<div class="net-inner" id="network-app" v-cloak>
+<div class="ref-page d-flex flex-column gap-2" id="network-app" v-cloak>
 
     <div class="net-welcome" v-if="mode=='setup'">Welcome to your<b><span>emon</span>Pi</b></div>
-    <div class="net-header" v-else><h2>Network</h2><p class="net-sub">Connections on this device</p></div>
+    <div class="ref-head mb-2" v-else><div><h2>Network</h2><p>Connections on this device</p></div></div>
 
-    <div class="net-section"><h4>Network connections</h4></div>
+    <div class="ref-section"><h4 class="ref-label me-auto">Network connections</h4></div>
 
-    <div class="net-box"><div class="net-row">
-        <span class="net-icon"><span class="svg-icon-link"></span></span>
+    <div class="card"><div class="ref-row">
+        <span class="ref-icon"><span class="svg-icon-link"></span></span>
         <span class="net-name">Ethernet</span>
         <span class="net-status" v-if="eth0.ip!='---'"><a :href="'http://'+eth0.ip" class="font-monospace" target="_blank">{{ eth0.ip }}</a></span>
         <span class="net-status" v-else></span>
         <span class="badge px-2" :class="eth0.ip!='---' ? 'bg-success-subtle text-success-emphasis' : 'bg-secondary-subtle text-secondary-emphasis'">{{ eth0.ip!='---' ? 'Connected' : 'Disconnected' }}</span>
     </div></div>
 
-    <div class="net-box"><div class="net-row">
-        <span class="net-icon"><span class="svg-icon-wifi"></span></span>
+    <div class="card"><div class="ref-row">
+        <span class="ref-icon"><span class="svg-icon-wifi"></span></span>
         <span class="net-name">WiFi</span>
         <span class="net-status" v-if="wlan0.ip!='---'"><b>{{ wlan0.ssid }}</b> <a :href="'http://'+wlan0.ip" class="font-monospace" target="_blank">{{ wlan0.ip }}</a></span>
         <span class="net-status" v-else></span>
         <span class="badge px-2" :class="wlan0.ip!='---' ? 'bg-success-subtle text-success-emphasis' : 'bg-secondary-subtle text-secondary-emphasis'">{{ wlan0.ip!='---' ? 'Connected' : 'Disconnected' }}</span>
     </div></div>
 
-    <div class="net-box" v-if="mode=='network'"><div class="net-row">
-        <span class="net-icon"><span class="svg-icon-phonelink_setup"></span></span>
+    <div class="card" v-if="mode=='network'"><div class="ref-row">
+        <span class="ref-icon"><span class="svg-icon-phonelink_setup"></span></span>
         <span class="net-name">Hotspot</span>
         <span class="net-status" v-if="ap0.ip!='---'"><b>{{ ap0.ssid }}</b> <a :href="'http://'+ap0.ip" class="font-monospace" target="_blank">{{ ap0.ip }}</a></span>
         <span class="net-status" v-else></span>
@@ -52,41 +52,41 @@ load_css("Modules/network/network_view.css");
     </div></div>
 
     <template v-if="setup_stage==1">
-        <div class="net-section"><h4>{{ mode=='setup' ? 'Next step' : 'WiFi' }}</h4></div>
-        <div class="net-box" v-if="write"><div class="net-row is-link" @click="setup('client')">
-            <span class="net-icon"><span class="svg-icon-wifi"></span></span>
+        <div class="ref-section"><h4 class="ref-label me-auto">{{ mode=='setup' ? 'Next step' : 'WiFi' }}</h4></div>
+        <div class="card" v-if="write"><div class="ref-row is-link" @click="setup('client')">
+            <span class="ref-icon"><span class="svg-icon-wifi"></span></span>
             <span class="net-choice">{{ wlan0.ssid=='' ? 'Connect to WiFi network' : 'Change WiFi network' }}</span>
             <span class="svg-icon-arrow_forward net-arrow"></span>
         </div></div>
-        <div class="net-box" v-if="mode=='setup' && eth0.ip!='---' && write"><div class="net-row is-link" @click="setup('ethernet')">
-            <span class="net-icon"><span class="svg-icon-link"></span></span>
+        <div class="card" v-if="mode=='setup' && eth0.ip!='---' && write"><div class="ref-row is-link" @click="setup('ethernet')">
+            <span class="ref-icon"><span class="svg-icon-link"></span></span>
             <span class="net-choice">Continue on Ethernet</span>
             <span class="svg-icon-arrow_forward net-arrow"></span>
         </div></div>
-        <div class="net-box" v-if="mode=='setup' && ap_on"><div class="net-row is-link" @click="continue_to_emoncms">
-            <span class="net-icon"><span class="svg-icon-enter"></span></span>
+        <div class="card" v-if="mode=='setup' && ap_on"><div class="ref-row is-link" @click="continue_to_emoncms">
+            <span class="ref-icon"><span class="svg-icon-enter"></span></span>
             <span class="net-choice">Continue to Emoncms login</span>
             <span class="svg-icon-arrow_forward net-arrow"></span>
         </div></div>
     </template>
 
     <template v-if="setup_stage==2">
-        <div class="net-section">
-            <h4>WiFi networks</h4>
+        <div class="ref-section">
+            <h4 class="ref-label me-auto">WiFi networks</h4>
             <template v-if="wifi_client_mode=='list'">
                 <button class="btn btn-default" @click="scan_for_networks"><span class="svg-icon-refresh-cw"></span> Scan</button>
                 <button class="btn btn-default" @click="setup_stage=1">Close</button>
             </template>
         </div>
 
-        <div class="net-box" v-if="wifi_client_mode=='scan'"><div class="net-progress">
+        <div class="card" v-if="wifi_client_mode=='scan'"><div class="net-progress">
             <div class="spinner-border" role="status"></div>
             Scanning for WiFi networks, this may take a few seconds
         </div></div>
 
         <template v-if="wifi_client_mode=='list'">
-            <div class="net-box" v-for="network in available_networks" :class="{open: selected_SSID==network.SSID}">
-                <div class="net-row is-link" @click="configure_client(network.SSID)">
+            <div class="card" v-for="network in available_networks" :class="{open: selected_SSID==network.SSID}">
+                <div class="ref-row is-link" @click="configure_client(network.SSID)">
                     <span class="wifi-signal" :class="'wifi-signal-'+network.level" :title="network.SIGNAL+'%'"><i></i><i></i><i></i><i></i></span>
                     <span class="net-ssid">{{ network.SSID }}</span>
                     <span class="badge px-2 bg-success-subtle text-success-emphasis" v-if="wlan0.ip!='---' && wlan0.ssid==network.SSID">Connected</span>
@@ -108,18 +108,18 @@ load_css("Modules/network/network_view.css");
             </div>
         </template>
 
-        <div class="net-box" v-if="wifi_client_mode=='connect'"><div class="net-progress">
+        <div class="card" v-if="wifi_client_mode=='connect'"><div class="net-progress">
             <div class="spinner-border" role="status"></div>
             <div>Connecting to <b>{{ selected_SSID }}</b></div>
             <div v-if="status_error">{{ status_error }}</div>
         </div></div>
 
-        <div class="net-box" v-if="wifi_client_mode=='failed'"><div class="net-progress">
+        <div class="card" v-if="wifi_client_mode=='failed'"><div class="net-progress">
             <div>Could not connect to <b>{{ selected_SSID }}</b>. Check the password and try again.</div>
             <button class="btn btn-default" @click="wifi_client_mode='list'">Back to networks</button>
         </div></div>
 
-        <div class="net-box" v-if="wifi_client_mode=='connected'"><div class="net-progress">
+        <div class="card" v-if="wifi_client_mode=='connected'"><div class="net-progress">
             <div>Connected to <b>{{ wlan0.ssid }}</b></div>
             <a :href="'http://'+wlan0.ip" class="net-ip font-monospace">{{ wlan0.ip }}</a>
             <div v-if="mode=='setup'">Connect this computer to the same network, then open the address above.</div>
