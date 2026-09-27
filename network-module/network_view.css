@@ -15,7 +15,6 @@ body:has(.net-blue) { background-color: #1d8dbc; }
     flex-direction: column;
     gap: 10px;
 }
-.net-mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; }
 
 .net-header { margin-bottom: 14px; }
 .net-header h2 { margin: 0; font-size: 26px; line-height: 34px; color: var(--text-primary); }
@@ -72,22 +71,7 @@ body:has(.net-blue) { background-color: #1d8dbc; }
 /* Password form in an open network row */
 .net-form { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 16px 18px; }
 .net-form label { margin: 0; font-size: 13px; color: var(--text-muted); }
-.net-form input[type=text], .net-form input[type=password] {
-    width: 260px;
-    max-width: 100%;
-    height: auto;
-    margin: 0;
-    padding: 7px 12px;
-    font-size: 14px;
-    color: var(--text-primary);
-    background-color: var(--bg-input);
-    border: 1px solid var(--border-card);
-    border-radius: 6px;
-    box-shadow: none;
-    outline: none;
-}
-.net-form input:focus { border-color: var(--accent-border); }
-.net-form input[type=checkbox] { margin: 0 4px 0 0; vertical-align: -2px; }
+.net-form .net-password { width: 260px; max-width: 100%; }
 .net-form .net-spacer { flex: 1; }
 
 /* Scanning, connecting and connected */
@@ -104,37 +88,6 @@ body:has(.net-blue) { background-color: #1d8dbc; }
 .net-progress b { color: var(--text-primary); }
 .net-progress .net-ip { font-size: 22px; }
 .net-progress .spinner-border { color: var(--text-muted); }
-
-/* Buttons and tags, as the API pages */
-.net-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    flex-shrink: 0;
-    padding: 7px 12px;
-    font-size: 13px;
-    color: var(--text-body);
-    background-color: var(--bg-badge);
-    border: 1px solid var(--border-card);
-    border-radius: 6px;
-    cursor: pointer;
-}
-.net-btn:hover { color: var(--text-primary); background-color: var(--bg-card-row-hover); }
-.net-btn-primary { font-weight: bold; color: #fff; background-color: var(--bs-primary); border-color: var(--bs-primary); }
-.net-btn-primary:hover { color: #fff; background-color: var(--bs-primary); opacity: 0.85; }
-
-.net-tag {
-    flex-shrink: 0;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: bold;
-    line-height: 16px;
-    color: var(--text-muted);
-    background-color: var(--bg-badge);
-}
-.net-tag-ok { color: var(--bs-success-text-emphasis); background-color: var(--bs-success-bg-subtle); }
-.net-tag-lock { color: var(--bs-warning-text-emphasis); background-color: var(--bs-warning-bg-subtle); }
 
 /* WiFi signal: four bars, filled to the level */
 .wifi-signal { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; flex-shrink: 0; color: var(--accent); }
@@ -170,6 +123,21 @@ body:has(.net-blue) { background-color: #1d8dbc; }
     --text-muted: #d1e8f1;
     --bs-primary: #fff;
 }
-.net-blue .net-btn-primary, .net-blue .net-btn-primary:hover { color: #1d8dbc; }
-.net-blue .net-tag-ok { color: #fff; background-color: rgba(92, 184, 92, 0.8); }
-.net-blue .net-tag-lock { color: #1d8dbc; background-color: rgba(255, 255, 255, 0.85); }
+/* Bootstrap buttons, fields and badges read these */
+.net-page.net-blue {
+    --bs-body-color: #fff;
+    --bs-body-bg: rgba(0, 0, 0, 0.12);
+    --bs-tertiary-bg: rgba(255, 255, 255, 0.12);
+    --ec-input-border-color: rgba(255, 255, 255, 0.6);
+    --ec-btn-default-hover-bg: rgba(255, 255, 255, 0.2);
+    --ec-btn-default-active-bg: rgba(255, 255, 255, 0.28);
+    --ec-btn-default-hover-border: #fff;
+    --bs-secondary-text-emphasis: #d1e8f1;
+    --bs-secondary-bg-subtle: rgba(255, 255, 255, 0.12);
+    --bs-success-text-emphasis: #fff;
+    --bs-success-bg-subtle: rgba(92, 184, 92, 0.8);
+    --bs-warning-text-emphasis: #1d8dbc;
+    --bs-warning-bg-subtle: rgba(255, 255, 255, 0.85);
+}
+.net-blue .btn-primary { --bs-btn-color: #1d8dbc; --bs-btn-hover-color: #1d8dbc; --bs-btn-active-color: #1d8dbc; }
+.net-blue .form-check-input:checked { background-color: rgba(255, 255, 255, 0.3); border-color: #fff; }
