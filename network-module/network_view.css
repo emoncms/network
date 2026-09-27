@@ -5,7 +5,6 @@
 /* Page background stays fixed until the colour mode is set on <html> */
 body:has(.net-page) { background-color: #222; }
 body:has(.net-blue) { background-color: #1d8dbc; }
-[v-cloak] { display: none; }
 
 .net-page { --ref-width: 800px; }
 .net-page .ref-section { margin: 14px 0 0; }
