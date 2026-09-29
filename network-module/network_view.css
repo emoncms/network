@@ -3,7 +3,7 @@
    wizard with the blue set (.net-blue). */
 
 /* Page background stays fixed until the colour mode is set on <html> */
-body:has(.net-page) { background-color: #222; }
+body:has(.net-page) { background-color: var(--ec-dark-page-bg); }
 body:has(.net-blue) { background-color: #1d8dbc; }
 
 .net-page { --ref-width: 800px; }
