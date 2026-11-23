@@ -48,6 +48,9 @@ filename='/etc/NetworkManager/dnsmasq.d/redirect.conf'
 cat > $filename <<-EOF
 address=/connectivitycheck.gstatic.com/192.168.42.1
 address=/clients3.google.com/192.168.42.1
+address=/connectivitycheck.samsung.com/192.168.42.1
+address=/connectivity.samsung.com/192.168.42.1
+address=/connectivity.samsung.com.cn/192.168.42.1
 address=/captive.apple.com/192.168.42.1
 address=/apple.com/192.168.42.1
 address=/www.msftncsi.com/192.168.42.1

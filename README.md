@@ -19,6 +19,12 @@ Run install script
     cd /opt/emoncms/modules/network
     ./install.sh
 
+The captive-portal DNS rules include Samsung connectivity-check hostnames, although
+the probe used can vary by device and software version. After updating the
+installation, reload NetworkManager to apply changes to its dnsmasq configuration;
+this briefly interrupts DNS resolution. The rules also affect DNS lookups on the
+host, not just hotspot clients.
+
 ## Licence
 
 GNU AFFERO GENERAL PUBLIC LICENSE, see emoncms repo:<br>
