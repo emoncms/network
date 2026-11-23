@@ -46,14 +46,30 @@ EOF
 # dnsmasq captive portal settings
 filename='/etc/NetworkManager/dnsmasq.d/redirect.conf'
 cat > $filename <<-EOF
+# Android / Google / ChromeOS
 address=/connectivitycheck.gstatic.com/192.168.42.1
+address=/connectivitycheck.android.com/192.168.42.1
+address=/clients1.google.com/192.168.42.1
 address=/clients3.google.com/192.168.42.1
-address=/connectivitycheck.samsung.com/192.168.42.1
-address=/connectivity.samsung.com/192.168.42.1
-address=/connectivity.samsung.com.cn/192.168.42.1
+address=/clients4.google.com/192.168.42.1
+
+# Apple (iOS / macOS / iPadOS)
 address=/captive.apple.com/192.168.42.1
-address=/apple.com/192.168.42.1
+
+# Windows 10 / 11 & Legacy Windows
+address=/www.msftconnecttest.com/192.168.42.1
 address=/www.msftncsi.com/192.168.42.1
+
+# Samsung
+address=/connectivitycheck.samsung.com/192.168.42.1
+address=/connectivity.samsung.com.cn/192.168.42.1
+
+# Firefox
+address=/detectportal.firefox.com/192.168.42.1
+
+# Linux (GNOME / Ubuntu)
+address=/nmcheck.gnome.org/192.168.42.1
+address=/connectivity-check.ubuntu.com/192.168.42.1
 EOF
 
 # ------------------------------------------------------
